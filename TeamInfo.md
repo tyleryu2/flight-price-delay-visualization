@@ -10,8 +10,8 @@
 | Captain     |  wy16@illinois.edu     |
 | Member1     |        Tyler Yu        |
 | Member1     |  tyleryu2@illinois.edu |
-| Member2     |                        |
-| Member2     |                        |
+| Member2     |   Abhitya Krishnaraj   |
+| Member2     | abhitya2@illinois.edu  |
 | Member3     |                        |
 | Member3     |                        |
 
