@@ -19,10 +19,11 @@
 
 |   Info      |        Description     |
 | ----------- | ---------------------- |
-|  Title      |       ProjectTitle     |
+|  Title      | Flight Delay Analytics |
 | System URL  |      link_to_system    |
 | Video Link  |      link_to_video     |
 
 ## Project Summary
 
-This is a summary of the project!
+People don’t want to encounter delays when taking a flight. The stress of spending a night at an airport due to weather or general airport delays is a harrowing experience, especially for people traveling with children. Our solution estimates the delays you would encounter at any airport in the USA, with a specific airline, or on a specific route around the country, while providing visualization of the requested information.
+
