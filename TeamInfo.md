@@ -12,8 +12,8 @@
 | Member1     |  tyleryu2@illinois.edu |
 | Member2     |   Abhitya Krishnaraj   |
 | Member2     | abhitya2@illinois.edu  |
-| Member3     |                        |
-| Member3     |                        |
+| Member3     | Kevin Zhang            |
+| Member3     | kevinz13@illinois.edu  |
 
 ## Project Information
 
