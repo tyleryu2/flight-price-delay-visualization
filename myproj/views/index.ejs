@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Flight Delay Visualization</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"> -->
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+  <!-- Added scripts -->
+  <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+  <script src="https://unpkg.com/color-legend-element@1.0.3/build/color-legend-element.umd.js"></script>
+
+</head>
+
+<body>
+
+  <div class="container">
+    <div class="header">
+      <div class="headerLeft">
+        <div class="pages">
+          <button>Routes Visualizer</button>
+          <button>Flight Metrics</button>
+        </div>
+      </div>
+      <div class="headerRight">
+        <button id="login-signup-button" onclick="document.getElementById('id01').style.display='block'">Login/Sign Up</button>
+
+        <!-- The Modal -->
+        <div id="id01" class="modal">
+          <span onclick="document.getElementById('id01').style.display='none'" class="close" title="Close Modal">&times;</span>
+
+          <!-- Modal Content -->
+          <!-- <form id="login-form" class="modal-content animate" action="/login" method="POST"> -->
+          <form id="login-form" class="modal-content animate">
+            <div class="container">
+              <label for="username"><b>Username</b></label>
+              <input id="username-id" type="text" placeholder="Enter Username" name="username" required>
+
+              <label for="password"><b>Password</b></label>
+              <input id="password-id" type="password" placeholder="Enter Password" name="password" required>
+
+              <button id="login-button" type="submit" name="action" value="login">Login</button>
+              <button id="signup-button" type="submit" name="action" value="signup">Sign Up</button>
+
+              <div id="login-error"></div>
+
+            </div>
+
+          </form>
+        </div>
+
+        <button id="logout-button">Logout</button>
+
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="contentLeft">
+        <div class="map">
+          <div id="map-canvas"></div>
+          <div id="info" style="position: absolute; font-family: Arial; font-size: 14px;"></div>
+        </div>
+
+        <div class="color-legend">
+          <color-legend
+            titletext="Route Color by Delay (min)"
+            scaletype="discrete"
+            range='["#00ff00", "#55ff00", "#aaff00", "#ffff00", "#ffaa00", "#ff5500", "#ff0000"]'
+            domain="[-30, 40]"
+            tickFormat=".0f"
+            tickValues="[-20, -10, 0, 10, 20, 30]"
+          >
+          </color-legend>
+
+          <color-legend
+            titletext="Route Color by Price ($)"
+            scaletype="discrete"
+            range='["#00ff00", "#55ff00", "#aaff00", "#ffff00", "#ffaa00", "#ff5500", "#ff0000"]'
+            domain="[60, 340]"
+            tickFormat=".0f"
+            tickValues="[100, 140, 180, 220, 260, 300]"
+          >
+          </color-legend>
+        </div>
+      </div>
+      <div class="contentRight">
+        <div class="favorite-routes-table">
+          <a>Favorite Routes</a>
+          <button id="show-fav-routes">Show Routes</button>
+          <button id="plot-fav-routes">Plot Routes</button>
+          <table id="favorites-table">
+            <thead>
+              <tr>
+                <th>Origin Airport</th>
+                <th>Destination Airport</th>
+                <th>Average Price ($)</th>
+                <th>Average Delay (min)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Rows will be inserted here dynamically -->
+            </tbody>
+          </table>
+          <div id="no-fav-routes"></div>
+          <form autocomplete="off" id="add-fav-route-form">
+            <input id="fav-route-origin" type="text" name="fav-route-origin" placeholder="Origin Airport" required>
+            <input id="fav-route-dest" type="text" name="fav-route-dest" placeholder="Destination Airport" required>
+            <button id="add-route-button" type="submit" name="action" value="add-route">Add Route</button>
+            <button id="delete-route-button" type="submit" name="action" value="delete-route">Remove Route</button>
+          </form>
+        </div>
+
+        <div id="add-flight-form">
+          <button id="add-flight-modal" onclick="document.getElementById('id02').style.display='block'">Add Flight</button>
+
+          <!-- The Modal -->
+          <div id="id02" class="modal">
+            <span onclick="document.getElementById('id02').style.display='none'" class="close" title="Close Modal">&times;</span>
+  
+            <!-- Modal Content -->
+            <!-- <form id="login-form" class="modal-content animate" action="/login" method="POST"> -->
+            <form id="add-flight-form" class="modal-content animate">
+              <div class="container">
+                <b>Flight Identifiers</b>
+                <div class="flight-inputs">
+                  <input id="flight-date-id" type="datetime-local" name="flight-date" required>
+                  <input id="flight-number-id" type="text" placeholder="Flight Number" name="flight-number" required>
+                  <input id="airline-code-id" type="text" placeholder="Airline Code" name="airline-code" required>
+                </div>
+
+                <b>Route Details</b>
+                <div class="flight-inputs">
+                  <input id="origin-airport-id" type="text" placeholder="Origin Airport" name="origin-airport" required>
+                  <div class="route-arrow"><b>&rarr;</b></div>
+                  <input id="dest-airport-id" type="text" placeholder="Destination Airport" name="dest-airport" required>
+
+                  <!-- <div class="flight-origin">
+                    <input id="origin-airport-id" type="text" placeholder="Origin Airport" name="origin-airport" required>
+                    <input id="origin-city-id" type="text" placeholder="Origin City" name="origin-city" required>
+                    <input id="origin-state-id" type="text" placeholder="Origin State" name="origin-state" required>
+                  </div>
+
+                  <div class="route-arrow"><b>&rarr;</b></div>
+
+                  <div class="flight-dest">
+                    <input id="dest-airport-id" type="text" placeholder="Destination Airport" name="dest-airport" required>
+                    <input id="dest-city-id" type="text" placeholder="Destination City" name="dest-city" required>
+                    <input id="dest-state-id" type="text" placeholder="Destination State" name="dest-state" required>
+                  </div> -->
+                </div>
+
+                <label for="price"><b>Price</b></label>
+                <input id="price-id" type="text" placeholder="Price" name="price" required>
+
+                <b>Delay</b>
+                <div class="flight-inputs">
+                  <input id="dep-delay-id" type="text" placeholder="Departure" name="dep-delay" required>
+                  <input id="arr-delay-id" type="text" placeholder="Arrival" name="arr-delay" required>
+                  <input id="carrier-delay-id" type="text" placeholder="Carrier" name="carrier-delay" required>
+                  <input id="weather-delay-id" type="text" placeholder="Weather" name="weather-delay" required>
+                  <input id="nas-delay-id" type="text" placeholder="NAS" name="nas-delay" required>
+                  <input id="security-delay-id" type="text" placeholder="Security" name="security-delay" required>
+                  <input id="late-aircraft-delay-id" type="text" placeholder="Late Aircraft" name="late-aircraft-delay" required>
+                </div>
+               
+                <button id="add-flight-button" type="submit" name="action" value="add-flight">Add Flight</button>
+  
+              </div>
+  
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="footer">
+      <a>Filters</a>
+      <div class="filter-container">
+        <form autocomplete="off" action="/filter" method="GET" id="filter-form">
+
+          <div class="filters">
+            <div class="filter-route">
+              <a>Route</a>
+              <div class="autocomplete">
+                <input id="origin" type="text" name="origin" placeholder="Origin">
+              </div>
+              <select name="originType" id="originType">
+                <option value="airport">Airport</option>
+                <option value="city">City</option>
+                <option value="state">State</option>
+              </select>
+
+              <div class="autocomplete">
+                <input id="dest" type="text" name="dest" placeholder="Destination">
+              </div>
+              <select name="destType" id="destType">
+                <option value="airport">Airport</option>
+                <option value="city">City</option>
+                <option value="state">State</option>
+              </select>
+
+            </div>
+              
+            <div class="filter-airline">
+              <a>Airline</a>
+              <div class="autocomplete">
+                <input id="airline" type="text" name="airline" placeholder="Airline">
+              </div>
+              <div class="autocomplete">
+                <input id="airlineSize" type="text" name="airlineSize" placeholder="Annual Passengers">
+              </div>
+            </div>
+  
+            <div class="filter-price">
+              <a>Average Price</a>
+              <div class="autocomplete">
+                <input id="minPrice" type="text" name="minPrice" placeholder="Min">
+              </div>
+              <div class="autocomplete">
+                <input id="maxPrice" type="text" name="maxPrice" placeholder="Max">
+              </div>
+            </div>
+  
+            <div class="filter-delay">
+              <a>Average Delay</a>
+              <div class="autocomplete">
+                <input id="minDelay" type="text" name="minDelay" placeholder="Min">
+              </div>
+              <div class="autocomplete">
+                <input id="maxDelay" type="text" name="maxDelay" placeholder="Max">
+              </div>
+              <select name="delayType" id="delayType">
+                <option value="avg_arr_delay">Total Delay</option>
+                <option value="avg_carrier_delay">Carrier Delay</option>
+                <option value="avg_weather_delay">Weather Delay</option>
+                <option value="avg_nas_delay">NAS Delay</option>
+                <option value="avg_security_delay">Security Delay</option>
+                <option value="avg_late_aircraft_delay">Late Aircraft Delay</option>
+              </select>
+            </div>
+            
+
+            <input id="submit-filter" type="submit">
+
+          </div>
+        </form>
+
+        <a>Toggle Route Colors</a>
+        <form id="toggle-form">
+          <div>
+              <input type="radio" id="toggle-delay" name="toggle" value="toggle-delay" checked>
+              <label for="option1">Delay</label>
+          </div>
+          <div>
+              <input type="radio" id="toggle-price" name="toggle" value="toggle-price">
+              <label for="option2">Price</label>
+          </div>
+        </form>
+        
+
+      </div>
+    </div>
+  </div>
+
+
+
+<script type="text/javascript">
+
+const airport_coords = {
+  "FLL": [26.072599, -80.152702],
+  "MSP": [44.880081, -93.221741],
+  "DEN": [39.861698150635, -104.672996521],
+  "DAL": [32.847099, -96.851799],
+  "HSV": [34.637199, -86.775101],
+  "IAH": [29.984399795532227, -95.34140014648438],
+  "ATL": [33.6367, -84.428101],
+  "MDW": [41.785999, -87.752403],
+  "GRR": [42.88079834, -85.52279663],
+  "DFW": [32.896801, -97.038002],
+  "ORD": [41.9786, -87.9048],
+  "LAS": [36.083361, -115.151817],
+  "AUS": [30.197535, -97.662015],
+  "IND": [39.7173, -86.294403],
+  "MHT": [42.932598, -71.435699],
+  "BOS": [42.36197, -71.0079],
+  "MSY": [29.99340057373047, -90.25800323486328],
+  "CMH": [39.998001, -82.891899],
+  "LGA": [40.777199, -73.872597],
+  "CLT": [35.2140007019043, -80.94309997558594],
+  "BNA": [36.1245002746582, -86.6781997680664],
+  "DTW": [42.21377, -83.353786],
+  "PHX": [33.435302, -112.005905],
+  "MCI": [39.2976, -94.713898],
+  "EWR": [40.692501, -74.168701],
+  "LAX": [33.942501, -118.407997],
+  "HPN": [41.06700134277344, -73.70760345458984],
+  "JFK": [40.639447, -73.779317],
+  "ASE": [39.223202, -106.869003],
+  "BUF": [42.94049835, -78.73220062],
+  "SLC": [40.78886, -111.979866],
+  "SFO": [37.619806, -122.374821],
+  "PDX": [45.58869934, -122.5979996],
+  "SNA": [33.675701, -117.867996],
+  "HRL": [26.228500366210938, -97.65440368652344],
+  "BOI": [43.5644, -116.223],
+  "BDL": [41.93851, -72.688066],
+  "MIA": [25.79319953918457, -80.29060363769531],
+  "BHM": [33.562901, -86.753502],
+  "ELP": [31.80719948, -106.3779984],
+  "TPA": [27.975500106811523, -82.533203125],
+  "GSP": [34.895699, -82.218903],
+  "LGB": [33.816523, -118.149891],
+  "PIT": [40.49150085, -80.23290253],
+  "PHL": [39.871899, -75.241096],
+  "PVD": [41.725038, -71.425668],
+  "CID": [41.884701, -91.7108],
+  "CLE": [41.411701, -81.8498],
+  "BUR": [34.197703, -118.356378],
+  "HOU": [29.645399, -95.2789],
+  "MYR": [33.6796989441, -78.9282989502],
+  "RDM": [44.2541008, -121.1500015],
+  "CVG": [39.048801, -84.667801],
+  "MKE": [42.947200775146484, -87.89659881591797],
+  "MCO": [28.429399490356445, -81.30899810791016],
+  "BTR": [30.533199, -91.149597],
+  "ECP": [30.357106, -85.795414],
+  "SEA": [47.447943, -122.310276],
+  "STL": [38.748697, -90.370003],
+  "SAN": [32.7336006165, -117.190002441],
+  "JAX": [30.492469, -81.687813],
+  "ABQ": [35.039976, -106.608925],
+  "ALB": [42.74829864501953, -73.80169677734375],
+  "SAT": [29.533701, -98.469803],
+  "SMF": [38.69540023803711, -121.59100341796875],
+  "ISP": [40.79520035, -73.10019684],
+  "PSP": [33.8297, -116.507004],
+  "BWI": [39.1754, -76.668297],
+  "ACY": [39.45759963989258, -74.57720184326172],
+  "OAK": [37.720085, -122.221184],
+  "BZN": [45.7775, -111.153],
+  "ORF": [36.895341, -76.201],
+  "BGR": [44.8074, -68.828102],
+  "CHS": [32.898602, -80.040497],
+  "PWM": [43.646198, -70.309303],
+  "DSM": [41.534, -93.663101],
+  "LAN": [42.77870178222656, -84.58740234375],
+  "ONT": [34.055999755859375, -117.60099792480469],
+  "COS": [38.805801, -104.700996],
+  "SJC": [37.362452, -121.929188],
+  "OKC": [35.393388, -97.598248],
+  "CRP": [27.770399, -97.501198],
+  "RDU": [35.877602, -78.787498],
+  "FWA": [40.9785, -85.195099],
+  "RSW": [26.53619956970215, -81.75520324707031],
+  "ACV": [40.978101, -124.109],
+  "CAE": [33.938801, -81.119499],
+  "DCA": [38.8521, -77.037697],
+  "MSN": [43.1399, -89.337502],
+  "CAK": [40.916099548339844, -81.44219970703125],
+  "SDF": [38.1744, -85.736],
+  "GSO": [36.097801, -79.937302],
+  "EYW": [24.556101, -81.759598],
+  "AVL": [35.436199, -82.541801],
+  "SWF": [41.504101, -74.104797],
+  "AMA": [35.219398, -101.706001],
+  "ROC": [43.1189, -77.672401],
+  "XNA": [36.281898, -94.306801],
+  "FAT": [36.776199, -119.718002],
+  "ABE": [40.651773, -75.442797],
+  "BLI": [48.79280090332031, -122.53800201416016],
+  "RNO": [39.4991, -119.767998],
+  "CHO": [38.13859939575195, -78.4529037475586],
+  "MEM": [35.04240036010742, -89.97669982910156],
+  "VPS": [30.4832, -86.525398],
+  "MFR": [42.37419891357422, -122.87300109863281],
+  "IDA": [43.514599, -112.070999],
+  "TYS": [35.811001, -83.994003],
+  "FAR": [46.92070007324219, -96.81580352783203],
+  "EGE": [39.64260101, -106.9179993],
+  "EUG": [44.12459945678711, -123.21199798583984],
+  "MDT": [40.193501, -76.763397],
+  "PIE": [27.9102, -82.687401],
+  "DAY": [39.902401, -84.219398],
+  "OMA": [41.3032, -95.894096],
+  "BIS": [46.772701263427734, -100.74600219726562],
+  "ACK": [41.25310135, -70.06020355],
+  "PSC": [46.26470184326172, -119.11900329589844],
+  "LEX": [38.036499, -84.605904],
+  "LBE": [40.275902, -79.4048],
+  "SYR": [43.11119842529297, -76.1063003540039],
+  "TLH": [30.3965, -84.350304],
+  "BTV": [44.471901, -73.153297],
+  "PHF": [37.131901, -76.492996],
+  "SBN": [41.708698, -86.317299],
+  "IAD": [38.9445, -77.455803],
+  "MGM": [32.300598, -86.393997],
+  "SRQ": [27.394631, -82.554359],
+  "JAC": [43.6072998046875, -110.73799896240234],
+  "LCK": [39.813801, -82.927803],
+  "SAV": [32.12760162, -81.20210266],
+  "GFK": [47.949299, -97.176102],
+  "PAE": [47.9063, -122.281998],
+  "SGF": [37.245701, -93.388603],
+  "MOT": [48.2593994140625, -101.27999877929688],
+  "MVY": [41.3931007385, -70.6143035889],
+  "TUL": [36.19839859008789, -95.88809967041016],
+  "JAN": [32.311199, -90.075897],
+  "LIT": [34.729582, -92.223728],
+  "MSO": [46.91630173, -114.0910034],
+  "PNS": [30.4734, -87.1866],
+  "BLV": [38.5452, -89.835197],
+  "BIL": [45.807701, -108.542999],
+  "ATW": [44.258099, -88.519096],
+  "FSD": [43.585463, -96.741152],
+  "PIA": [40.6642, -89.693298],
+  "BMI": [40.4771, -88.915901],
+  "HTS": [38.366699, -82.557999],
+  "FNT": [42.96540069580078, -83.74359893798828],
+  "RIC": [37.50519943237305, -77.3197021484375],
+  "CHA": [35.035301, -85.203796],
+  "MLB": [28.1028, -80.645302],
+  "DAB": [29.179899, -81.058098],
+  "AGS": [33.3699, -81.9645],
+  "GEG": [47.6199, -117.533997],
+  "TUS": [32.115004, -110.938053],
+  "MFE": [26.176141, -98.237965],
+  "STS": [38.50899887, -122.8130035],
+  "PBI": [26.68320083618164, -80.09559631347656],
+  "LNK": [40.85100173950195, -96.75920104980469],
+  "ICT": [37.649899, -97.433098],
+  "MAF": [31.942499, -102.202003],
+  "RFD": [42.1954, -89.097198],
+  "LBB": [33.663601, -101.822998],
+  "PVU": [40.2192, -111.723],
+  "SBA": [34.426201, -119.839996],
+  "SPI": [39.844101, -89.677902],
+  "MRY": [36.58700180053711, -121.84300231933594],
+  "SHV": [32.446602, -93.8256],
+  "ILM": [34.270599365234375, -77.90260314941406],
+  "PBG": [44.650901794433594, -73.46810150146484],
+  "GPT": [30.407301, -89.070099],
+  "TVC": [44.74140167236328, -85.58219909667969],
+  "ORH": [42.2673, -71.875702],
+  "MTJ": [38.5098, -107.893997],
+  "PGD": [26.9202, -81.990501],
+  "HDN": [40.481201, -107.218002],
+  "EVV": [38.0369987488, -87.5324020386],
+  "ROA": [37.3255, -79.975403],
+  "MBS": [43.532902, -84.079597],
+  "TOL": [41.5868, -83.8078],
+  "TTN": [40.27669906616211, -74.8134994506836],
+  "RAP": [44.0452995300293, -103.05699920654297],
+  "IAG": [43.1073, -78.946198],
+  "SFB": [28.777599334716797, -81.23750305175781],
+  "STC": [45.5466, -94.059898],
+  "AZA": [33.3090, -111.6559],
+  "USA": [35.3804, -80.7141],
+  "HHH": [32.2248, -80.6972],
+  "FCA": [48.3068, -114.2521]
+};
+
+
+var map;
+
+var polylines = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+
+  var center = { lat:39.8283, lng:-98.5795 };	
+  
+  var mapOptions = {
+      zoom: 4,
+      center: center,
+      mapTypeId: google.maps.MapTypeId.RoadMap
+  };
+
+  map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+
+  const filterForm = document.getElementById('filter-form');
+
+  if (filterForm) {
+    filterForm.addEventListener('submit', async function(event) {
+      event.preventDefault();  
+      
+      var origin = document.getElementById('origin').value;
+      var dest = document.getElementById('dest').value;
+      var originType = document.getElementById('originType').value;
+      var destType = document.getElementById('destType').value;
+      var airline = document.getElementById('airline').value;
+      var airlineSize = document.getElementById('airlineSize').value;
+      var minPrice = document.getElementById('minPrice').value;
+      var maxPrice = document.getElementById('maxPrice').value;
+      var minDelay = document.getElementById('minDelay').value;
+      var maxDelay = document.getElementById('maxDelay').value;
+      var delayType = document.getElementById('delayType').value;
+
+
+      const formData = {
+        origin: origin,
+        dest: dest,
+        originType: originType,
+        destType: destType,
+        airline: airline,
+        airlineSize: airlineSize,
+        minPrice: minPrice,
+        maxPrice: maxPrice,
+        minDelay: minDelay,
+        maxDelay: maxDelay,
+        delayType: delayType
+      };
+
+      const response = await fetch('/filter', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        polylines.forEach(function(item) {
+          item.polyline.setMap(null);
+        });
+        polylines = [];
+        
+        data.data.forEach(function(route) {
+          var origin = route.origin_airport;
+          var dest = route.dest_airport;
+          var delay = parseFloat(route.avg_arr_delay);
+          var price = parseFloat(route.avg_price);
+
+          // [ red, light red, lighter red, yellow, lighter green, light gree, green]
+          var colors = ['#FF0000', '#FF5500', '#FFAA00', '#FFFF00', '#AAFF00', '#55FF00', '#00FF00'];
+          var lineColor = '';
+
+          let toggleValue = '';
+          const radioButtons = document.querySelectorAll('input[name="toggle"]');
+
+          // Find the checked radio button and get its value
+          radioButtons.forEach(button => {
+              if (button.checked) {
+                  toggleValue = button.value;
+              }
+          });
+          if (toggleValue == 'toggle-delay') {
+            if (delay <= -20) {
+              lineColor = colors[6];
+            } else if (delay <= -10) {
+              lineColor = colors[5];
+            } else if (delay <= 0) {
+              lineColor = colors[4];
+            } else if (delay <= 10) {
+              lineColor = colors[3];
+            } else if (delay <= 20) {
+              lineColor = colors[2];
+            } else if (delay <= 30) {
+              lineColor = colors[1];
+            } else {
+              lineColor = colors[0];
+            }
+          } else if (toggleValue == 'toggle-price') {
+            if (price <= 100) {
+              lineColor = colors[6];
+            } else if (price <= 140) {
+              lineColor = colors[5];
+            } else if (price <= 180) {
+              lineColor = colors[4];
+            } else if (price <= 220) {
+              lineColor = colors[3];
+            } else if (price <= 260) {
+              lineColor = colors[2];
+            } else if (price <= 300) {
+              lineColor = colors[1];
+            } else {
+              lineColor = colors[0];
+            }
+          }
+        
+          var origin_coords = { lat: airport_coords[origin][0], lng: airport_coords[origin][1] }
+          var dest_coords = { lat: airport_coords[dest][0], lng: airport_coords[dest][1] }
+
+          var arrow = {
+            icon: {path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW},
+            offset: '100%' // Specifies where along the line the icon should be placed (100% is the end of the line)
+          };
+
+
+          var line = new google.maps.Polyline({
+            path: [origin_coords, dest_coords],
+            strokeColor: lineColor,
+            strokeOpacity: 1.0,
+            strokeWeight: 2,
+            map: map,
+            icons: [arrow]
+          });
+
+          clickOnRoute(line, origin, dest, price, delay);
+
+          polylines.push(
+            {
+              polyline: line,
+              delay: delay,
+              price: price
+            }
+          );
+        });
+      }
+    });
+  }
+});
+
+
+document.addEventListener('DOMContentLoaded', function() {
+  const radioButtons = document.querySelectorAll('input[name="toggle"]');
+        
+  radioButtons.forEach(button => {
+      button.addEventListener('change', function(event) {
+        polylines.forEach(function(item) {
+            // item.polyline.setMap(null);
+            var value = button.value;
+            var colors = ['#FF0000', '#FF5500', '#FFAA00', '#FFFF00', '#AAFF00', '#55FF00', '#00FF00'];
+            var lineColor = ''
+            var delay = item.delay;
+            var price = item.price;
+
+            if (value == 'toggle-delay') {
+              
+              if (delay <= -20) {
+                lineColor = colors[6];
+              } else if (delay <= -10) {
+                lineColor = colors[5];
+              } else if (delay <= 0) {
+                lineColor = colors[4];
+              } else if (delay <= 10) {
+                lineColor = colors[3];
+              } else if (delay <= 20) {
+                lineColor = colors[2];
+              } else if (delay <= 30) {
+                lineColor = colors[1];
+              } else {
+                lineColor = colors[0];
+              }
+              
+            } else if (value == 'toggle-price') {
+              if (price <= 100) {
+                lineColor = colors[6];
+              } else if (price <= 140) {
+                lineColor = colors[5];
+              } else if (price <= 180) {
+                lineColor = colors[4];
+              } else if (price <= 220) {
+                lineColor = colors[3];
+              } else if (price <= 260) {
+                lineColor = colors[2];
+              } else if (price <= 300) {
+                lineColor = colors[1];
+              } else {
+                lineColor = colors[0];
+              }
+            }
+
+            item.polyline.setOptions({
+              strokeColor: lineColor
+            })
+        });
+      });
+  });
+});
+
+  
+document.addEventListener('DOMContentLoaded', function() {
+  const loginForm = document.getElementById('login-form');
+
+  if (loginForm) {
+    loginForm.addEventListener('submit', async function(event) {
+      event.preventDefault();          
+
+      var username = document.getElementById('username-id').value;
+      var password = document.getElementById('password-id').value;
+      var action = event.submitter.value;
+      console.log('Button pressed:', action);
+
+      const formData = {
+          username: username,
+          password: password,
+          action: action,
+      };
+
+      const response = await fetch('/login', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+      console.log(data);
+
+      if (data.success) {
+        console.log('password correct');
+        document.getElementById('id01').style.display = 'none';
+
+        if (action == 'login') {
+          alert('You have successfully logged in!');
+        } else if (action == 'signup') {
+          alert('New user successfully created!');
+        }
+
+        const usernameInput = document.getElementById('username-id');
+        const passwordInput = document.getElementById('password-id'); 
+        usernameInput.value = '';
+        passwordInput.value = '';
+
+        const loginButton = document.getElementById('login-signup-button');
+        const logoutButton = document.getElementById('logout-button');
+
+        loginButton.style.display = 'none';
+        logoutButton.style.display = 'block';
+
+      } else {
+        console.log('password incorrect');
+        const errorElement = document.getElementById('login-error');
+        errorElement.textContent = data.message;
+        errorElement.style.display = 'block';
+        errorElement.style.color = 'red';
+      }
+    })
+  }
+});
+
+const logoutButton = document.getElementById('logout-button');
+logoutButton.addEventListener('click', async function(event) {
+  console.log('attempting to logout');
+
+  const response = await fetch('/logout', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  });
+
+  const data = await response.json();
+  if (data.success) {
+    const tableBody = document.querySelector('#favorites-table tbody');
+    tableBody.innerHTML = '';
+    const noFavRoutes = document.getElementById('no-fav-routes');
+    noFavRoutes.innerHTML = '';
+
+    polylines.forEach(function(item) {
+      item.polyline.setMap(null);
+    });
+    polylines = [];
+
+    const loginButton = document.getElementById('login-signup-button');
+    const logoutButton = document.getElementById('logout-button');
+
+    loginButton.style.display = 'block';
+    logoutButton.style.display = 'none';
+
+    alert('Successfully logged out.');
+  } else {
+    alert('Not currently logged in to any account.');
+  }
+});
+
+const showFavRoutes = document.getElementById('show-fav-routes');
+showFavRoutes.addEventListener('click', async function(event) {
+  const response = await fetch('/favorite_routes', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  });
+
+  const data = await response.json();
+
+  if (data.success) {
+    console.log(data.data);
+
+    const tableBody = document.querySelector('#favorites-table tbody');
+    tableBody.innerHTML = '';
+    const noFavRoutes = document.getElementById('no-fav-routes');
+    noFavRoutes.innerHTML = '';
+
+    console.log('Data:', data.data);
+
+    if (data.data.length > 0) {
+      data.data.forEach(row => {
+        const tableRow = document.createElement('tr');
+        for (const key in row) {
+          const tableCell = document.createElement('td');
+          var value = row[key];
+          if (typeof value === 'number') {
+            value = value.toFixed(2);
+          }
+
+          tableCell.textContent = value;
+          tableRow.appendChild(tableCell);
+        }
+        tableBody.appendChild(tableRow);
+      });
+    } else {
+      const text = document.createElement('a');
+      text.textContent = 'No routes are currently favorited.'
+      noFavRoutes.appendChild(text);
+    }
+    
+    
+  } else {
+    alert('Not logged in. Login to view favorite routes.')
+  }
+});
+
+const plotFavRoutes = document.getElementById('plot-fav-routes');
+plotFavRoutes.addEventListener('click', async function(event) {
+  const response = await fetch('/favorite_routes', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  });
+
+  const data = await response.json();
+
+  if (data.success) {
+    console.log(data.data);
+
+    polylines.forEach(function(item) {
+      item.polyline.setMap(null);
+    });
+    polylines = [];
+
+    data.data.forEach(function(route) {
+      var origin = route.origin_airport;
+      var dest = route.dest_airport;
+      var delay = parseFloat(route.avg_arr_delay);
+      var price = parseFloat(route.avg_price);
+
+      // [ red, light red, lighter red, yellow, lighter green, light gree, green]
+      var colors = ['#FF0000', '#FF5500', '#FFAA00', '#FFFF00', '#AAFF00', '#55FF00', '#00FF00'];
+
+      lineColor = ''
+      if (delay <= -20) {
+        lineColor = colors[6];
+      } else if (delay <= -10) {
+        lineColor = colors[5];
+      } else if (delay <= 0) {
+        lineColor = colors[4];
+      } else if (delay <= 10) {
+        lineColor = colors[3];
+      } else if (delay <= 20) {
+        lineColor = colors[2];
+      } else if (delay <= 30) {
+        lineColor = colors[1];
+      } else {
+        lineColor = colors[0];
+      }
+    
+      var origin_coords = { lat: airport_coords[origin][0], lng: airport_coords[origin][1] }
+      var dest_coords = { lat: airport_coords[dest][0], lng: airport_coords[dest][1] }
+
+      var arrow = {
+        icon: {path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW},
+        offset: '100%' // Specifies where along the line the icon should be placed (100% is the end of the line)
+      };
+
+
+      var line = new google.maps.Polyline({
+        path: [origin_coords, dest_coords],
+        strokeColor: lineColor,
+        strokeOpacity: 1.0,
+        strokeWeight: 2,
+        map: map,
+        icons: [arrow]
+      });
+
+      clickOnRoute(line, origin, dest, price, delay);
+
+      polylines.push(
+        {
+          polyline: line,
+          delay: delay,
+          price: price
+        }
+      )
+    });
+  } else {
+    alert('Not logged in. Login to view favorite routes.')
+  }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  const routeForm = document.getElementById('add-fav-route-form');
+
+  if (routeForm) {
+    routeForm.addEventListener('submit', async function(event) {
+      event.preventDefault();          
+
+      var origin = document.getElementById('fav-route-origin').value;
+      var dest = document.getElementById('fav-route-dest').value;
+      var action = event.submitter.value;
+
+      const formData = {
+          origin: origin,
+          dest: dest,
+          action: action
+      };
+
+      const response = await fetch('/change_favorite_routes', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+      console.log(data);
+
+      if (data.success) {
+        alert(data.message);
+      } else {
+        alert(data.message);
+      }
+    });
+  }
+});
+
+function clickOnRoute(line, origin, dest, price, delay) {
+  google.maps.event.addListener(line, 'click', function(event) {
+    // alert('Polyline clicked at location: ' + event.latLng);
+    var msg = `
+      Origin Airport: ${origin}
+      Destination Airport: ${dest}
+      Average Delay: ${delay.toFixed(2)} min
+      Average Price: $${price.toFixed(2)}
+    `;
+    alert(msg);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const addFlightForm = document.getElementById('add-flight-form');
+
+  if (addFlightForm) {
+    addFlightForm.addEventListener('submit', async function(event) {
+      event.preventDefault();          
+
+      var flight_date = document.getElementById('flight-date-id').value;
+      var flight_number = document.getElementById('flight-number-id').value;
+      var airline_code = document.getElementById('airline-code-id').value;
+
+      var origin_airport = document.getElementById('origin-airport-id').value;
+      // var origin_city = document.getElementById('origin-city-id').value;
+      // var origin_state = document.getElementById('origin-state-id').value;
+      var dest_airport = document.getElementById('dest-airport-id').value;
+      // var dest_city = document.getElementById('dest-city-id').value;
+      // var dest_state = document.getElementById('dest-state-id').value;
+
+      var price = document.getElementById('price-id').value;
+      var dep_delay = document.getElementById('dep-delay-id').value;
+      var arr_delay = document.getElementById('arr-delay-id').value;
+      var carrier_delay = document.getElementById('carrier-delay-id').value;
+      var weather_delay = document.getElementById('weather-delay-id').value;
+      var nas_delay = document.getElementById('nas-delay-id').value;
+      var security_delay = document.getElementById('security-delay-id').value;
+      var late_aircraft_delay = document.getElementById('late-aircraft-delay-id').value;
+
+      const formData = {
+          flight_date: flight_date,
+          flight_number: flight_number,
+          airline_code: airline_code,
+          origin_airport: origin_airport,
+          // origin_city: origin_city,
+          // origin_state: origin-state,
+          dest_airport: dest_airport,
+          // dest_city: dest_city,
+          // dest_state: dest_state,
+          price: price,
+          dep_delay: dep_delay,
+          arr_delay: arr_delay,
+          carrier_delay: carrier_delay,
+          weather_delay: weather_delay,
+          nas_delay: nas_delay,
+          security_delay: security_delay,
+          late_aircraft_delay: late_aircraft_delay
+      };
+
+      const response = await fetch('/add_flight', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+      console.log(data);
+
+      if (data.success) {
+        document.getElementById('id02').style.display = 'none';
+        alert(data.message);
+        
+      } else {
+        alert(data.message);
+      }
+    })
+  }
+});
+
+
+</script>
+
+  <style>
+    
+    /* --------Login CSS-------- */
+
+    /* The Modal (background) */
+    .modal {
+      display: none; /* Hidden by default */
+      position: fixed; /* Stay in place */
+      z-index: 1; /* Sit on top */
+      left: 0;
+      top: 0;
+      width: 100%; /* Full width */
+      height: 100%; /* Full height */
+      overflow: auto; /* Enable scroll if needed */
+      background-color: rgb(0,0,0); /* Fallback color */
+      background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+      padding-top: 60px;
+    }
+
+    /* Modal Content/Box */
+    .modal-content {
+      background-color: #fefefe;
+      margin: 5px auto; /* 15% from the top and centered */
+      border: 1px solid #888;
+      width: 80%; /* Could be more or less, depending on screen size */
+    }
+
+    /* The Close Button */
+    .close {
+      /* Position it in the top right corner outside of the modal */
+      position: absolute;
+      right: 25px;
+      top: 0;
+      color: #000;
+      font-size: 35px;
+      font-weight: bold;
+    }
+
+    /* Close button on hover */
+    .close:hover,
+    .close:focus {
+      color: red;
+      cursor: pointer;
+    }
+
+    /* Add Zoom Animation */
+    .animate {
+      -webkit-animation: animatezoom 0.6s;
+      animation: animatezoom 0.6s
+    }
+
+    /* Logout */
+    #logout-button {
+        display: none;
+    }
+
+    @-webkit-keyframes animatezoom {
+      from {-webkit-transform: scale(0)}
+      to {-webkit-transform: scale(1)}
+    }
+
+    @keyframes animatezoom {
+      from {transform: scale(0)}
+      to {transform: scale(1)}
+    }
+
+    /* --------Webpage CSS-------- */
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 50vh;
+    }
+
+
+    .header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 70px;
+      width: 100%;
+      display: flex;
+      /* z-index: 1000; */
+
+      background-color: #88BBD6;
+
+      justify-content: space-between;
+      align-items:center;
+    }
+
+    .content {
+      margin-top: 70px;
+      margin-bottom: 150px;
+      display: flex;
+      height: calc(100vh - 220px);
+    }
+
+    .contentLeft {
+      flex: 0.75;
+      padding: 20px;
+    }
+
+    .contentRight {
+      flex: 0.25;
+      padding: 20px;
+    }
+
+    .footer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 150px;
+      background-color: #b1dce4;
+      /* padding: 20px; */
+    }
+
+    #map-canvas {
+      height: 50vh;
+      width: 50vw;
+    }
+
+    .map {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .filter-container {
+      flex-grow: 1;
+      display: flex;
+      padding: 20px;
+    }
+
+
+    .filters {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 20px;
+
+    }
+
+    /* Favorite Routes table styling */
+    #favorites-table {
+        border-collapse: collapse; /* Collapse the border lines */
+        width: 100%; /* Set the width of the table */
+    }
+
+    /* Define the border for the table and cells */
+    #favorites-table,
+    #favorites-table th,
+    #favorites-table td {
+        border: 1px solid black; /* Set the border style, width, and color */
+    }
+
+    /* Optionally, you can add padding to the table cells for better spacing */
+    #favorites-table th,
+    #favorites-table td {
+        padding: 8px; /* Add padding for spacing */
+        text-align: left; /* Align text to the left */
+    }
+
+    /* --------Flight Form-------- */
+    .flight-inputs {
+      display: flex;
+      flex-direction: row;
+    }
+
+    .route-arrow {
+      margin-left: 6px;
+      margin-right: 6px;
+    }
+
+  </style>
+</body>
+</html>
