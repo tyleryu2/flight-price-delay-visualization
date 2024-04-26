@@ -646,9 +646,59 @@ app.post('/delete_flight', async (req, res) => {
   }
 });
 
-app.get('/flight_metrics', (req, res) => {
+app.get('/flight_metrics', async (req, res) => {
+  
   res.render('metrics.ejs');
 })
+
+app.post('/airport_metric', async (req, res) => {
+  // indexes:
+    // CREATE INDEX f_origin_airport_idx ON Flights(origin_airport);
+    // CREATE INDEX f_dest_airport ON Flights(dest_airport);
+
+  // pre index: 16-17 sec
+  // post index: 1.8-2.3
+
+  
+  var query = `
+    SELECT origin_airport AS airport, num_outgoing, num_incoming
+    FROM
+    (SELECT origin_airport, COUNT(origin_airport) AS num_outgoing
+    FROM Flights f
+    GROUP BY origin_airport) as outgoing
+
+    JOIN
+
+    (SELECT dest_airport, COUNT(dest_airport) AS num_incoming
+    FROM Flights f
+    GROUP BY dest_airport) as incoming
+
+    ON origin_airport = dest_airport
+
+    ORDER BY num_outgoing DESC, num_incoming DESC;
+  `;
+
+  
+
+  // index: CREATE INDEX f_origin_airport_idx ON Flights(origin_airport)
+      // pre index: 14.1-14.4 SECONDS
+      // post index: 1-1.5 second!
+
+  // var query = `
+  //   SELECT origin_airport, COUNT(origin_airport)
+  //   FROM Flights f
+  //   GROUP BY origin_airport
+  // `;
+
+  console.log('Starting query...');
+  console.time('queryExecutionTime');
+  var num_in_out_flights = await dbQuery(query);
+
+  console.timeEnd('queryExecutionTime');
+
+  res.json({ success: true, data: num_in_out_flights });
+})
+
 
 app.listen(80, function () {
     console.log('Node app is running on port 80');
