@@ -553,75 +553,102 @@ app.post('/add_flight', async (req, res) => {
   var nas_delay = req.body.nas_delay;
   var security_delay = req.body.security_delay;
   var late_aircraft_delay = req.body.late_aircraft_delay;
-
   try {
     var flightQuery = `
       INSERT INTO Flights
       VALUES('${flight_date}', ${flight_number}, '${airline_code}', '${origin_airport}', '${dest_airport}', '${origin_city}', '${origin_state}', '${dest_city}', '${dest_state}', ${price}, ${dep_delay}, ${arr_delay}, ${carrier_delay}, ${weather_delay}, ${nas_delay}, ${security_delay}, ${late_aircraft_delay});
     `;
     console.log(flightQuery);
-
-    res.json({ success: true, message: 'Flight successfully added and route averages are being updated.'})
-
     await dbQuery(flightQuery);
+
+      res.json({ success: true, message: 'Flight successfully added. Route averages are being updated.'})
+
   } catch (err) {
     if (err.code == 'ER_DUP_ENTRY') {
       res.json({ success: false, message: 'Unable to add flight. The flight identifiers are not unique and already exist in the database.' });
+        
+    } else if (err.code == 'ER_NO_REFERENCED_ROW_2') {
+      var addRouteQuery = `
+        INSERT INTO Routes
+        VALUES('${origin_airport}', '${dest_airport}', '${origin_city}', '${origin_state}', '${dest_city}', '${dest_state}', ${price}, ${dep_delay}, ${arr_delay}, ${carrier_delay}, ${weather_delay}, ${nas_delay}, ${security_delay}, ${late_aircraft_delay})
+      `;
+
+      await dbQuery(addRouteQuery);
+      await dbQuery(flightQuery);
+      res.json({ success: true, message: `Flight successfully added. ${origin_airport} to ${dest_airport} was a new route, so this route was also added.` })
+
+    } else {
+      console.log(err)
+      res.json({ success: false, message: 'Unable to add flight. Please try again.' });
     }
     console.log(err.code);
   }
-
-  // var routeQuery = `
-  //   SELECT *
-  //   FROM Routes
-  //   WHERE origin_airport = '${origin}' AND dest_airport = '${dest}';
-  // `;
-
-  // console.log(routeQuery);
-
-  // const routeData = await dbQuery(routeQuery);
-  // const routeExists = routeData.length > 0;
-  // console.log(routeData);
-
-  // var userQuery = `
-  //   SELECT *
-  //   FROM Favorites
-  //   WHERE origin_airport = '${origin}' AND dest_airport = '${dest}' AND username = '${username}';
-  // `;
-  // const userData = await dbQuery(userQuery);
-  // const alreadyFav = userData.length > 0;
-
-  // if (action == 'add-route') {
-  //   if (routeExists) {
-  //     if (alreadyFav) {
-  //       res.json({ success: false, message: 'This route is already favorited.' });
-  //     } else {
-  //       var addQuery = `
-  //         INSERT INTO Favorites
-  //         VALUES('${origin}', '${dest}', '${username}');
-  //       `;
-
-  //       console.log(addQuery);
-
-  //       await dbQuery(addQuery);
-  //       res.json({ success: true, message: 'Route successfully favorited! Click Show Routes button to refresh.' })
-  //     }
-  //   } else {
-  //     res.json({ success: false, message: 'This route cannot be favorited because it does not exist. Add a flight to create this route.'})
-  //   }
-  // } else if (action == 'delete-route') {
-  //   if (!alreadyFav) {
-  //     res.json({ success: false, message: 'This route cannot be removed because it is not currently favorited.'})
-  //   } else {
-  //     var deleteQuery = `
-  //       DELETE FROM Favorites
-  //       WHERE origin_airport = '${origin}' AND dest_airport = '${dest}' AND username = '${username}'; 
-  //     `;
-  //     await dbQuery(deleteQuery);
-  //     res.json({ success: true, message: 'Route successfully removed from favorites. Click Show Routes button to refresh.'})
-  //   }
-  // }
 });
+
+app.post('/delete_flight', async (req, res) => {
+  var flight_date = req.body.flight_date;
+  var flight_number = req.body.flight_number;
+  var airline_code = req.body.airline_code;
+
+  var flightExistsQuery = `
+    SELECT *
+    FROM Flights
+    WHERE flight_date = '${flight_date}' AND flight_number = ${flight_number} AND airline_code = '${airline_code}';
+  `;
+
+  const flightData = await dbQuery(flightExistsQuery);
+  const flightExists = flightData.length > 0;
+
+  console.log(flightData);
+
+  console.log(req.body);
+
+  if (flightExists) {
+    var flightQuery = `
+      DELETE FROM Flights
+      WHERE flight_date = '${flight_date}' AND flight_number = ${flight_number} AND airline_code = '${airline_code}';
+    `;
+    console.log(flightQuery);
+    await dbQuery(flightQuery);
+
+    var origin_airport = flightData[0].origin_airport;
+    var dest_airport = flightData[0].dest_airport;
+
+    var routeQuery = `
+      SELECT *
+      FROM Flights
+      WHERE origin_airport = '${origin_airport}' AND dest_airport = '${dest_airport}';
+    `;
+
+    var routeData = await dbQuery(routeQuery);
+    var flightHasRoute = routeData.length > 0
+
+    if (!flightHasRoute) {
+      var favoriteQuery = `
+        DELETE FROM Favorites
+        WHERE origin_airport = '${origin_airport}' AND dest_airport = '${dest_airport}';
+      `;
+
+      var routeQuery = `
+        DELETE FROM Routes
+        WHERE origin_airport = '${origin_airport}' AND dest_airport = '${dest_airport}';
+      `;
+
+      await dbQuery(favoriteQuery);
+      await dbQuery(routeQuery);
+
+      res.json({ success: true, message: `Flight successfully deleted. This was the last flight with the route ${origin_airport} to ${dest_airport}, so this route was also deleted.` })
+    } else {
+      res.json({ success: true, message: 'Flight successfully deleted. Route averages are being updated.'})
+    }
+  } else {
+    res.json({ success: false, message: 'Unable to delete flight because this flight does not exist.' })
+  }
+});
+
+app.get('/flight_metrics', (req, res) => {
+  res.render('metrics.ejs');
+})
 
 app.listen(80, function () {
     console.log('Node app is running on port 80');
