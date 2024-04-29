@@ -7,6 +7,7 @@
 
   <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
   <script src="https://unpkg.com/color-legend-element@1.0.3/build/color-legend-element.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <h1>This is the Second Page</h1>
@@ -14,22 +15,23 @@
 
     <form autocomplete="off" id="metric-form">
 
-      <select name="originType" id="originType">
-        <option value="airport-metric">Airport Metric</option>
-        <option value="city">City</option>
-        <option value="state">State</option>
+      <select name="metric-type" id="metric-type">
+        <option value="airport-traffic-metric">Airport Traffic</option>
+        <option value="airport-time-metric">Airport Timeliness</option>
+        <option value="arieline-traffic-metric">Airline Traffic</option>
+        <option value="airline-time-metric">Airline Timeliness</option>
       </select>
 
       <input id="submit-metric" type="submit">
     </form>
-    <button id="airport-metric">Airport Metric</button>
+    <!-- <button id="airport-metric">Airport Metric</button> -->
     <div id="visualization">
-      <div class="map">
+      <div id="map-container" style="display: none">
         <div id="map-canvas"></div>
         <div id="info" style="position: absolute; font-family: Arial; font-size: 14px; display: none;"></div>
         <div id="color-legend" style="display: none;">
           <color-legend
-            titletext="Airport Color by Proportion of Outgoing Flights"
+            titletext="Airport Color by Outgoing Flights Proportion (%)"
             scaletype="continuous"
             range='["#ff0000", "#00ff00"]'
             domain="[0, 100]"
@@ -38,6 +40,10 @@
           >
           </color-legend>
         </div>
+      </div>
+      <div id="chart-container" style="display: none">
+        <canvas id="chart1"></canvas>
+        <canvas id="chart2"></canvas>
       </div>
     </div>
 
@@ -237,81 +243,94 @@ const airport_coords = {
 };
 
 
-// var num_in_out_flights = []
-
 document.addEventListener('DOMContentLoaded', function() {
-  var airportButton = document.getElementById('airport-metric');
-  airportButton.addEventListener('click', async function(event) {
-    // const visualization = document.getElementById('visualization');
-    // visualization.innerHTML = '';
-
-    const response = await fetch('/airport_metric', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: ''
-    });
-
-    const data = await response.json();
-    console.log(data);
-
-    var center = { lat:39.8283, lng:-98.5795 };	
-  
-    var mapOptions = {
-        zoom: 4,
-        center: center,
-        mapTypeId: google.maps.MapTypeId.RoadMap
-    };
-
-    var color_legend = document.getElementById('color-legend');
-    color_legend.style.display = "block";
-
-    var map_element = document.getElementById('map-canvas');
-    map_element.style.display = "block";
-    var map = new google.maps.Map(map_element, mapOptions);
+  var metricForm = document.getElementById('metric-form');
+  if (metricForm) {
+    metricForm.addEventListener('submit', async function(event) {
+      event.preventDefault();  
     
-    data.data.forEach(function(airportData) {
-      var airport = airportData.airport
-      var num_incoming = airportData.num_incoming;
-      var num_outgoing = airportData.num_outgoing;
-      var size = num_incoming + num_outgoing;
+      var metricType = document.getElementById('metric-type').value;
+      console.log(metricType);
 
-      var proportion = num_outgoing / (num_incoming + num_outgoing);
+      if (metricType == 'airport-traffic-metric') {
+        airportTrafficMetric();
+      } else if (metricType == 'airport-time-metric') {
 
-      var red = { r: 255, g: 0, b: 0};
-      var green = { r: 0, g: 255, b: 0};
+      } else if (metricType == 'airline-traffic-metric') {
 
-      var color = calculateColor(red, green, proportion);
-
-      console.log(airportData);
-
-      // num_in_out_flights.push(
-      //   {
-      //     airport: airport,
-      //     num_incoming: num_incoming,
-      //     num_outgoing: num_outgoing
-      //   }
-      // );
-
-      airport_coord = { lat: airport_coords[airport][0], lng: airport_coords[airport][1] }
-
-      var circle = new google.maps.Circle({
-        strokeColor: color,
-        strokeOpacity: 0.6,
-        strokeWeight: 2,
-        fillColor: color,
-        fillOpacity: 0.35,
-        map,
-        center: airport_coord,
-        radius: size * 2.5
-      })
-
-      clickOnCircle(circle, airport, num_incoming, num_outgoing, proportion);
-
+      } else if (metricType == 'airline-time-metric') {
+        airlineTimeMetric();
+      }
     });
-  });
+  }
 });
+
+async function airportTrafficMetric() {
+  const response = await fetch('/airport_traffic', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: ''
+  });
+
+  const data = await response.json();
+  console.log(data);
+
+  // var center = { lat:39.8283, lng:-98.5795 };	
+  var center = { lat:38, lng:-98.5795 };	
+
+  var mapOptions = {
+      zoom: 4,
+      center: center,
+      mapTypeId: google.maps.MapTypeId.RoadMap
+  };
+
+  var map_container = document.getElementById('map-container');
+  map_container.style.display = "block";
+
+  var chart_container = document.getElementById('chart-container');
+  chart_container.style.display = "none";
+
+  var color_legend = document.getElementById('color-legend');
+  color_legend.style.display = "block";
+
+  var map_element = document.getElementById('map-canvas');
+  map_element.style.display = "block";
+  var map = new google.maps.Map(map_element, mapOptions);
+  
+  data.data[0].forEach(function(airportData) {
+    var airport = airportData.airport;
+    var num_incoming = airportData.num_incoming;
+    var num_outgoing = airportData.num_outgoing;
+    var size = num_incoming + num_outgoing;
+
+    var proportion = num_outgoing / (num_incoming + num_outgoing);
+
+    var red = { r: 255, g: 0, b: 0};
+    var green = { r: 0, g: 255, b: 0};
+
+    var color = calculateColor(red, green, proportion);
+
+    console.log(airportData);
+    airport_coord = { lat: airport_coords[airport][0], lng: airport_coords[airport][1] }
+
+    var circle = new google.maps.Circle({
+      strokeColor: color,
+      strokeOpacity: 0.6,
+      strokeWeight: 2,
+      fillColor: color,
+      fillOpacity: 0.35,
+      map,
+      center: airport_coord,
+      radius: size * 2.5,
+      zIndex: 100000 - size
+    })
+
+    clickOnCircle(circle, airport, num_incoming, num_outgoing, proportion);
+
+  });
+}
 
 function calculateColor(color1, color2, proportion) {
   const result = {};
@@ -335,6 +354,130 @@ function clickOnCircle(circle, airport, incoming, outgoing, proportion) {
     alert(msg);
   });
 }
+
+
+
+async function airlineTimeMetric() {
+  const response = await fetch('/airline_timeliness', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: ''
+  });
+
+  const airlineData = await response.json();
+  console.log(airlineData);
+
+  var map_container = document.getElementById('map-container');
+  map_container.style.display = "none";
+
+  var chart_container = document.getElementById('chart-container');
+  chart_container.style.display = "block";
+
+  var airlineTimes = airlineData.data[3];
+  // const labels = Array(Object.keys(airlineTimes).length);
+  // const earlyData = Array(Object.keys(airlineTimes).length);
+  // const lateData = Array(Object.keys(airlineTimes).length);
+  var labels = [];
+  var earlyData = [];
+  var lateData = [];
+  var propData = [];
+
+  airlineTimes.forEach(function(airline) {
+      labels.push(airline.airline_code);
+      earlyData.push(airline.num_early);
+      lateData.push(airline.num_late);
+      propData.push(airline.prop_early * 100);
+  });
+
+  const data1 = {
+    labels: labels,
+    datasets: [
+      {
+        label: 'Early Flights',
+        data: earlyData,
+        backgroundColor: [
+          'rgba(0, 255, 0, 0.2)'
+        ],
+        borderColor: [
+          'rgb(0, 255, 0)'
+        ],
+        borderWidth: 1
+      },
+      {
+        label: 'Late Flights',
+        data: lateData,
+        backgroundColor: [
+          'rgba(255, 0, 0, 0.2)'
+        ],
+        borderColor: [
+          'rgb(255, 0, 0)'
+        ],
+        borderWidth: 1
+      },
+    ]
+  };
+  
+  const config1 = {
+    type: 'bar',
+    data: data1,
+    options: {
+      scales: {
+        x: {
+          title: { display: true, text: 'Airline Code' }
+        },
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'Number of Flights' }
+        }
+      }
+    },
+  };
+
+  const data2 = {
+    labels: labels,
+    datasets: [
+      {
+        label: 'Early Flight Proportion',
+        data: propData,
+        backgroundColor: [
+          'rgba(0, 0, 255, 0.2)'
+        ],
+        borderColor: [
+          'rgb(0, 0, 255)'
+        ],
+        borderWidth: 1
+      },
+    ]
+  };
+  
+  const config2 = {
+    type: 'bar',
+    data: data2,
+    options: {
+      scales: {
+        x: {
+          title: { display: true, text: 'Airline Code' }
+        },
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'Proportion (%)' }
+        }
+      }
+    },
+  };
+
+  const ctx1 = document.getElementById('chart1').getContext('2d');
+  new Chart(ctx1, config1);
+
+  const ctx2 = document.getElementById('chart2').getContext('2d');
+  new Chart(ctx2, config2);
+  
+
+
+}
+
 </script>
 
 <style>
