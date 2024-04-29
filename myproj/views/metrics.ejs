@@ -31,7 +31,7 @@
         <div id="info" style="position: absolute; font-family: Arial; font-size: 14px; display: none;"></div>
         <div id="color-legend" style="display: none;">
           <color-legend
-            titletext="Airport Color by Outgoing Flights Proportion (%)"
+            titletext="Airport Color by Proportion of Outgoing Flights (%)"
             scaletype="continuous"
             range='["#ff0000", "#00ff00"]'
             domain="[0, 100]"
@@ -39,6 +39,34 @@
             tickValues="[0, 25, 50, 75, 100]"
           >
           </color-legend>
+
+          <form autocomplete="off" id="filter-form">
+
+            <div class="filters">
+              <b>Filters for Average Total Delay</b>
+              <div class="filter-delay">
+                <b>Airport as Origin</b>
+                <div class="autocomplete">
+                  <input id="originMinDelay" type="text" name="originMinDelay" placeholder="Min">
+                </div>
+                <div class="autocomplete">
+                  <input id="originMaxDelay" type="text" name="originMaxDelay" placeholder="Max">
+                </div>
+
+                <b>Airport as Destination</b>
+                <div class="autocomplete">
+                  <input id="destMinDelay" type="text" name="destMinDelay" placeholder="Min">
+                </div>
+                <div class="autocomplete">
+                  <input id="destMaxDelay" type="text" name="destMaxDelay" placeholder="Max">
+                </div>
+              </div>
+              
+              <input id="submit-filter" type="submit">
+  
+            </div>
+          </form>
+
         </div>
       </div>
       <div id="chart-container" style="display: none">
@@ -265,6 +293,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
+var allCircles = [];
+
 async function airportTrafficMetric() {
   const response = await fetch('/airport_traffic', {
     method: 'POST',
@@ -312,7 +342,7 @@ async function airportTrafficMetric() {
 
     var color = calculateColor(red, green, proportion);
 
-    console.log(airportData);
+    // console.log(airportData);
     airport_coord = { lat: airport_coords[airport][0], lng: airport_coords[airport][1] }
 
     var circle = new google.maps.Circle({
@@ -327,7 +357,22 @@ async function airportTrafficMetric() {
       zIndex: 100000 - size
     })
 
-    clickOnCircle(circle, airport, num_incoming, num_outgoing, proportion);
+    var origin_delay = airportData.origin_avg_delay;
+    var dest_delay = airportData.dest_avg_delay;
+
+    allCircles.push(
+      {
+        circle: circle,
+        airport: airport,
+        num_incoming: num_incoming,
+        num_outgoing: num_outgoing,
+        proportion: proportion,
+        origin_delay: origin_delay,
+        dest_delay: dest_delay
+      }
+    );
+
+    clickOnCircle(circle, airport, num_incoming, num_outgoing, proportion, origin_delay, dest_delay);
 
   });
 }
@@ -342,7 +387,7 @@ function calculateColor(color1, color2, proportion) {
     return `rgb(${result.r}, ${result.g}, ${result.b})`;
 }
 
-function clickOnCircle(circle, airport, incoming, outgoing, proportion) {
+function clickOnCircle(circle, airport, incoming, outgoing, proportion, origin_delay, dest_delay) {
   google.maps.event.addListener(circle, 'click', function(event) {
     // alert('Polyline clicked at location: ' + event.latLng);
     var msg = `
@@ -350,11 +395,49 @@ function clickOnCircle(circle, airport, incoming, outgoing, proportion) {
       Number of incoming flights: ${incoming}
       Num of outgoing flights: ${outgoing}
       Proportion of outgoing flights: ${(proportion * 100).toFixed(2)}%
+      Average total delay:
+          Airport as origin: ${origin_delay.toFixed(2)} min
+          Airport as destination: ${dest_delay.toFixed(2)} min
     `;
     alert(msg);
   });
 }
 
+
+document.addEventListener('DOMContentLoaded', function() {
+  const filterForm = document.getElementById('filter-form');
+
+  if (filterForm) {
+    filterForm.addEventListener('submit', async function(event) {
+      event.preventDefault();  
+      var originMinDelayInput = document.getElementById('originMinDelay').value;
+      var originMaxDelayInput = document.getElementById('originMaxDelay').value;
+      var destMinDelayInput = document.getElementById('destMinDelay').value;
+      var destMaxDelayInput = document.getElementById('destMaxDelay').value;
+
+      var originMinDelay = (originMinDelayInput != '') ? parseFloat(originMinDelayInput) : Number.MIN_SAFE_INTEGER; 
+      var originMaxDelay = (originMaxDelayInput != '') ? parseFloat(originMaxDelayInput) : Number.MAX_SAFE_INTEGER; 
+      var destMinDelay = (destMinDelayInput != '') ? parseFloat(destMinDelayInput) : Number.MIN_SAFE_INTEGER; 
+      var destMaxDelay = (destMaxDelayInput != '') ? parseFloat(destMaxDelayInput) : Number.MAX_SAFE_INTEGER; 
+
+      allCircles.forEach(function(item) {
+        item.circle.setVisible(false);
+      });
+
+      allCircles.forEach(function(item) {
+        if (item.origin_delay >= originMinDelay & item.origin_delay <= originMaxDelay &
+            item.dest_delay >= destMinDelay & item.dest_delay <= destMaxDelay) {
+          
+          item.circle.setVisible(true);
+        }
+        
+      });
+
+
+    });
+    
+  }
+});
 
 
 async function airlineTimeMetric() {

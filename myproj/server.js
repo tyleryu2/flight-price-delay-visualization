@@ -654,10 +654,10 @@ app.get('/flight_metrics', async (req, res) => {
 app.post('/airport_traffic', async (req, res) => {
   // indexes:
     // CREATE INDEX f_origin_airport_idx ON Flights(origin_airport);
-    // CREATE INDEX f_dest_airport ON Flights(dest_airport);
+    // CREATE INDEX f_dest_airport_idx ON Flights(dest_airport);
 
-  // pre index: 16-17 sec
-  // post index: 1.8-2.3
+  // pre index: ~30 sec
+  // post index: ~2-2.5 sec
 
   
   // var query = `
@@ -677,7 +677,7 @@ app.post('/airport_traffic', async (req, res) => {
 
   //   ORDER BY num_outgoing DESC, num_incoming DESC
   // `;
-  var query = `CALL AirportTraffic();`
+  var query = `CALL AirportMetric();`
 
 
   // index: CREATE INDEX f_origin_airport_idx ON Flights(origin_airport)
@@ -704,7 +704,7 @@ app.post('/airline_timeliness', async (req, res) => {
     // CREATE INDEX f_airline_code_idx ON Flights(airline_code); (don't add bc this is already primary key)
 
   // pre index: very slow (> 9 min)
-  // post index:
+  // post index: ~2-2.5 sec
 
 
   var query = [
