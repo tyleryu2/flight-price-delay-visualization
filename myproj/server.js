@@ -646,8 +646,11 @@ app.post('/delete_flight', async (req, res) => {
   }
 });
 
+app.get('/routes_map', async (req, res) => {
+  res.render('index.ejs');
+})
+
 app.get('/flight_metrics', async (req, res) => {
-  
   res.render('metrics.ejs');
 })
 

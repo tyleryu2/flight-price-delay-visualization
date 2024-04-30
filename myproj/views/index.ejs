@@ -6,30 +6,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"> -->
   <link rel="stylesheet" href="styles.css">
-  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <!-- <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script> -->
+
+  
 
   <!-- Added scripts -->
   <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
   <script src="https://unpkg.com/color-legend-element@1.0.3/build/color-legend-element.umd.js"></script>
+    <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap JavaScript and dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 </head>
 
 <body>
 
-  <div class="container">
-    <div class="header">
-      <div class="headerLeft">
-        <div class="pages">
-          <button>Routes Visualizer</button>
-          <a href="/flight_metrics">
-            <button>Flight Metrics</button>
-          </a>
-        </div>
+  <div class="container-fluid">
+    <div class="row header">
+      <div class="col-lg-1 page">
+        <button class="btn btn-primary active">Routes Map</button>
       </div>
-      <div class="headerRight">
-        <button id="login-signup-button" onclick="document.getElementById('id01').style.display='block'">Login/Sign Up</button>
+      <div class="col-lg-1 page">
+        <a href="/flight_metrics">
+          <button class="btn btn-primary disabled">Flight Metrics</button>
+        </a>
+      </div>
+      <div class="col-lg-9"></div>
+      <div class="col-lg-1 headerRight">
+        <button class="btn btn-primary" id="login-signup-button" onclick="document.getElementById('id01').style.display='block'">Login/Sign Up</button>
 
         <!-- The Modal -->
         <div id="id01" class="modal">
@@ -39,14 +46,22 @@
           <!-- <form id="login-form" class="modal-content animate" action="/login" method="POST"> -->
           <form id="login-form" class="modal-content animate">
             <div class="container">
-              <label for="username"><b>Username</b></label>
-              <input id="username-id" type="text" placeholder="Enter Username" name="username" required>
+              <div class="row login-inputs">
+                <b>Username</b>
+                <div class="row">
+                  <div class="col-lg-4"><input id="username-id" type="text" placeholder="Enter Username" name="username" required></div>
+                </div>
+              </div>
+              
+              <div class="row login-inputs">
+                <b>Password</b>
+                <div class="row">
+                  <div class="col-lg-4"><input id="password-id" type="password" placeholder="Enter Password" name="password" required></div>
+                </div>
+              </div>
 
-              <label for="password"><b>Password</b></label>
-              <input id="password-id" type="password" placeholder="Enter Password" name="password" required>
-
-              <button id="login-button" type="submit" name="action" value="login">Login</button>
-              <button id="signup-button" type="submit" name="action" value="signup">Sign Up</button>
+              <button class="btn btn-primary" id="login-button" type="submit" name="action" value="login">Login</button>
+              <button class="btn btn-primary" id="signup-button" type="submit" name="action" value="signup">Sign Up</button>
 
               <div id="login-error"></div>
 
@@ -55,20 +70,21 @@
           </form>
         </div>
 
-        <button id="logout-button">Logout</button>
+        <button class="btn btn-primary" id="logout-button">Logout</button>
 
       </div>
     </div>
 
-    <div class="content">
-      <div class="contentLeft">
-        <div class="map">
+    <div class="row content">
+      <div class="col-lg-8 contentLeft">
+        <div class="row map">
           <div id="map-canvas"></div>
           <div id="info" style="position: absolute; font-family: Arial; font-size: 14px;"></div>
         </div>
-
-        <div class="color-legend">
+        <div class="row color-legend">
+          <div class="col-lg-2"></div>
           <color-legend
+            class="col-lg-4"
             titletext="Route Color by Delay (min)"
             scaletype="discrete"
             range='["#00ff00", "#55ff00", "#aaff00", "#ffff00", "#ffaa00", "#ff5500", "#ff0000"]'
@@ -79,6 +95,7 @@
           </color-legend>
 
           <color-legend
+            class="col-lg-4"
             titletext="Route Color by Price ($)"
             scaletype="discrete"
             range='["#00ff00", "#55ff00", "#aaff00", "#ffff00", "#ffaa00", "#ff5500", "#ff0000"]'
@@ -87,14 +104,125 @@
             tickValues="[100, 140, 180, 220, 260, 300]"
           >
           </color-legend>
+          <div class="col-lg-2"></div>
+
         </div>
+
+
+
+        <div class="footer">
+          <h3>Filters</h3>
+          <div class="filter-container">
+            <div class="row">
+              <div class="col-lg-9">
+                <div class="row">
+                  <b class="col-lg-4">Route</b>
+                  <b class="col-lg-3">Average Price</b>
+                  <b class="col-lg-4">Average Delay</b>
+                </div>
+              </div>
+              <div class="col-lg-3">
+                <b>Toggle Route Colors</b>
+              </div>
+            </div>
+            <div class="row">
+              <form class="col-lg-9" autocomplete="off" action="/filter" method="GET" id="filter-form">
+                <div class="row filters">
+                  <div class="col-lg-4 filter-route">
+                    <!-- <b>Route</b> -->
+                    <div class="row">
+                      <div class="col-lg-8 autocomplete">
+                        <input id="origin" type="text" name="origin" placeholder="Origin">
+                      </div>
+                      <select class="col-lg-4" name="originType" id="originType">
+                        <option value="airport">Airport</option>
+                        <option value="city">City</option>
+                        <option value="state">State</option>
+                      </select>
+                    </div>
+                    <div class="row">
+                      <div class="col-lg-8 autocomplete">
+                        <input id="dest" type="text" name="dest" placeholder="Destination">
+                      </div>
+                      <select class="col-lg-4" name="destType" id="destType">
+                        <option value="airport">Airport</option>
+                        <option value="city">City</option>
+                        <option value="state">State</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="filter-airline" style="display: none">
+                    <b>Airline</b>
+                    <div class="autocomplete">
+                      <input id="airline" type="text" name="airline" placeholder="Airline">
+                    </div>
+                    <div class="autocomplete">
+                      <input id="airlineSize" type="text" name="airlineSize" placeholder="Annual Passengers">
+                    </div>
+                  </div>
+                  <div class="col-lg-3 filter-price">
+                    <!-- <b>Average Price</b> -->
+                    <div class="autocomplete">
+                      <input class="min-max" id="minPrice" type="text" name="minPrice" placeholder="Min">
+                    </div>
+                    <div class="autocomplete">
+                      <input class="min-max" id="maxPrice" type="text" name="maxPrice" placeholder="Max">
+                    </div>
+                  </div>
+                  <div class="col-lg-4 filter-delay">
+                    <!-- <b>Average Delay</b> -->
+                    <div class="row">
+                      <div class="col-lg-8">
+                        <div class="autocomplete">
+                          <input class="min-max" id="minDelay" type="text" name="minDelay" placeholder="Min">
+                        </div>
+                        <div class="autocomplete">
+                          <input class="min-max" id="maxDelay" type="text" name="maxDelay" placeholder="Max">
+                        </div>
+                      </div>
+                      <select class="col-lg-4" name="delayType" id="delayType">
+                        <option value="avg_arr_delay">Total</option>
+                        <option value="avg_carrier_delay">Carrier</option>
+                        <option value="avg_weather_delay">Weather</option>
+                        <option value="avg_nas_delay">NAS</option>
+                        <option value="avg_security_delay">Security</option>
+                        <option value="avg_late_aircraft_delay">Late Aircraft</option>
+                      </select>
+                    </div>
+                  </div>
+                  <input class="row btn btn-primary" id="submit-filter" type="submit" value="Submit Filters">
+                </div>
+          
+              </form>
+              <!-- <b>Toggle Route Colors</b> -->
+              <form class="col-lg-2" id="toggle-form">
+                <div>
+                    <input type="radio" id="toggle-delay" name="toggle" value="toggle-delay" checked>
+                    <label for="option1">Delay</label>
+                </div>
+                <div>
+                    <input type="radio" id="toggle-price" name="toggle" value="toggle-price">
+                    <label for="option2">Price</label>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
       </div>
-      <div class="contentRight">
+      <div class="col-lg-4 contentRight">
         <div class="favorite-routes-table">
-          <b>Favorite Routes</b>
-          <button id="show-fav-routes">Show Routes</button>
-          <button id="plot-fav-routes">Plot Routes</button>
-          <table id="favorites-table">
+          <h3 class="row">Favorite Routes</h3>
+          <div class="row fav-route-buttons">
+            <div class="col-lg-5">
+              <button class="btn btn-secondary" id="show-fav-routes">Show Favorite Routes</button>
+            </div>
+            <div class="col-lg-5">
+              <button class="btn btn-secondary" id="plot-fav-routes">Plot Favorite Routes</button>
+            </div>
+          </div>
+          
+          <table class="table table-hover table-bordered" id="favorites-table">
             <thead>
               <tr>
                 <th>Origin Airport</th>
@@ -108,167 +236,141 @@
             </tbody>
           </table>
           <div id="no-fav-routes"></div>
+          <h5 class="row alter-fav-routes">Alter Favorite Routes</h5>
           <form autocomplete="off" id="add-fav-route-form">
-            <input id="fav-route-origin" type="text" name="fav-route-origin" placeholder="Origin Airport" required>
-            <input id="fav-route-dest" type="text" name="fav-route-dest" placeholder="Destination Airport" required>
-            <button id="add-route-button" type="submit" name="action" value="add-route">Add Route</button>
-            <button id="delete-route-button" type="submit" name="action" value="delete-route">Remove Route</button>
-          </form>
-        </div>
-
-        <button id="add-flight-modal" onclick="document.getElementById('id02').style.display='block'">Add Flight</button>
-        <!-- The Modal -->
-        <div id="id02" class="modal">
-          <span onclick="document.getElementById('id02').style.display='none'" class="close" title="Close Modal">&times;</span>
-
-          <!-- Modal Content -->
-          <!-- <form id="login-form" class="modal-content animate" action="/login" method="POST"> -->
-          <form id="add-flight-form" class="modal-content animate">
-            <div class="container">
-              <b>Flight Identifiers</b>
-              <div class="flight-inputs">
-                <input id="flight-date-id" type="datetime-local" name="flight-date" required>
-                <input id="flight-number-id" type="text" placeholder="Flight Number" name="flight-number" required>
-                <input id="airline-code-id" type="text" placeholder="Airline Code" name="airline-code" required>
+            <div class="row">
+              <!-- <div class="col-lg-4">
+                <input id="fav-route-origin" type="text" name="fav-route-origin" placeholder="Origin Airport" required>
               </div>
+              <div class="col-lg-4">
+                <input id="fav-route-dest" type="text" name="fav-route-dest" placeholder="Destination Airport" required>
+              </div> -->
 
-              <b>Route Details</b>
-              <div class="flight-inputs">
-                <input id="origin-airport-id" type="text" placeholder="Origin Airport" name="origin-airport" required>
-                <div class="route-arrow"><b>&rarr;</b></div>
-                <input id="dest-airport-id" type="text" placeholder="Destination Airport" name="dest-airport" required>
-              </div>
-
-              <label for="price"><b>Price</b></label>
-              <input id="price-id" type="text" placeholder="Price" name="price" required>
-
-              <b>Delay</b>
-              <div class="flight-inputs">
-                <input id="dep-delay-id" type="text" placeholder="Departure" name="dep-delay" required>
-                <input id="arr-delay-id" type="text" placeholder="Arrival" name="arr-delay" required>
-                <input id="carrier-delay-id" type="text" placeholder="Carrier" name="carrier-delay" required>
-                <input id="weather-delay-id" type="text" placeholder="Weather" name="weather-delay" required>
-                <input id="nas-delay-id" type="text" placeholder="NAS" name="nas-delay" required>
-                <input id="security-delay-id" type="text" placeholder="Security" name="security-delay" required>
-                <input id="late-aircraft-delay-id" type="text" placeholder="Late Aircraft" name="late-aircraft-delay" required>
-              </div>
-              
-              <button id="add-flight-button" type="submit" name="action" value="add-flight">Add Flight</button>  
             </div>
 
-          </form>
-        </div>
-
-        <button id="delete-flight-modal" onclick="document.getElementById('id03').style.display='block'">Delete Flight</button>
-        <!-- The Modal -->
-        <div id="id03" class="modal">
-          <span onclick="document.getElementById('id03').style.display='none'" class="close" title="Close Modal">&times;</span>
-
-          <!-- Modal Content -->
-          <!-- <form id="login-form" class="modal-content animate" action="/login" method="POST"> -->
-          <form id="delete-flight-form" class="modal-content animate">
-            <div class="container">
-              <b>Flight Identifiers</b>
-              <div class="flight-inputs">
-                <input id="flight-date-id2" type="datetime-local" name="flight-date" required>
-                <input id="flight-number-id2" type="text" placeholder="Flight Number" name="flight-number" required>
-                <input id="airline-code-id2" type="text" placeholder="Airline Code" name="airline-code" required>
+            <div class="row">
+              <div class="col-lg-4">
+                <div class="autocomplete">
+                  <input id="fav-route-origin" type="text" name="fav-route-origin" placeholder="Origin Airport" required>
+                </div>
+                <div class="autocomplete">
+                  <input id="fav-route-dest" type="text" name="fav-route-dest" placeholder="Destination Airport" required>
+                </div>
               </div>
-              
-              <button id="delete-flight-button" type="submit" name="action" value="delete-flight">Delete Flight</button>  
+              <button class="col-lg-2 btn btn-secondary add-route-button" id="add-route-button" type="submit" name="action" value="add-route">Add</button>
+              <button class="col-lg-2 btn btn-secondary remove-route-button" id="delete-route-button" type="submit" name="action" value="delete-route">Remove</button>
             </div>
           </form>
         </div>
-      </div>
-    </div>
 
-    <div class="footer">
-      <b>Filters</b>
-      <div class="filter-container">
-        <form autocomplete="off" action="/filter" method="GET" id="filter-form">
+        <h5 class="row alter-flights">Alter Flights</h5>
+        <div class="row">
+          <div class="col-lg-3">
+            <button class="btn btn-secondary" id="add-flight-modal" onclick="document.getElementById('id02').style.display='block'">Add Flight</button>
+            <!-- The Modal -->
+            <div id="id02" class="modal">
+              <span onclick="document.getElementById('id02').style.display='none'" class="close" title="Close Modal">&times;</span>
+              <!-- Modal Content -->
+              <!-- <form id="login-form" class="modal-content animate" action="/login" method="POST"> -->
+              <form id="add-flight-form" class="modal-content animate">
+                <div class="container">
+                  <b>Flight Identifiers</b>
+                  <div class="row flight-inputs">
+                    <div class="col-lg-2">
+                      <input id="flight-date-id" type="datetime-local" name="flight-date" style="width: 120px" required>
+                    </div>
+                    <div class="col-lg-2">
+                      <input id="flight-number-id" type="text" placeholder="Flight Number" name="flight-number" required>
+                    </div>
+                    <div class="col-lg-2">
+                      <input id="airline-code-id" type="text" placeholder="Airline Code" name="airline-code" required>
+                    </div>
+                    <div class="col-lg-5"></div>
+                  </div>
+                  <b>Route Details</b>
+                  <div class="row flight-inputs">
+                    <div class="col-lg-2">
+                      <input id="origin-airport-id" type="text" placeholder="Origin Airport" name="origin-airport" required>
+                    </div>
+                    <div class="col-lg-1">
+                      <div class="route-arrow"><b>&rarr;</b></div>
+                    </div>
+                    <div class="col-lg-2">
+                      <input id="dest-airport-id" type="text" placeholder="Destination Airport" name="dest-airport" required>
+                    </div>
+                    <div class="col-lg-7"></div>
+                  </div>
+                  <b>Price</b>
+                  <div class="row flight-inputs">
+                    <div class="col-lg-2">
+                      <input id="price-id" type="text" placeholder="Price" name="price" required>
+                    </div>
+                  </div>
+                  <b>Delay</b>
+                  <div class="row">
+                    <div class="col-lg-2">
+                      <input class="delay-input" id="dep-delay-id" type="text" placeholder="Departure" name="dep-delay" required>   
+                    </div>
+                    <div class="col-lg-2">
+                      <input class="delay-input" id="arr-delay-id" type="text" placeholder="Arrival" name="arr-delay" required>
+                    </div>
+                    <div class="col-lg-2">
+                      <input class="delay-input" id="carrier-delay-id" type="text" placeholder="Carrier" name="carrier-delay" required>
+                    </div>
+                    <div class="col-lg-2">
+                      <input class="delay-input" id="weather-delay-id" type="text" placeholder="Weather" name="weather-delay" required>
+                    </div>
+                    <div class="col-lg-4"></div>
+                  </div>
 
-          <div class="filters">
-            <div class="filter-route">
-              <b>Route</b>
-              <div class="autocomplete">
-                <input id="origin" type="text" name="origin" placeholder="Origin">
-              </div>
-              <select name="originType" id="originType">
-                <option value="airport">Airport</option>
-                <option value="city">City</option>
-                <option value="state">State</option>
-              </select>
-
-              <div class="autocomplete">
-                <input id="dest" type="text" name="dest" placeholder="Destination">
-              </div>
-              <select name="destType" id="destType">
-                <option value="airport">Airport</option>
-                <option value="city">City</option>
-                <option value="state">State</option>
-              </select>
-
-            </div>
-              
-            <div class="filter-airline">
-              <b>Airline</b>
-              <div class="autocomplete">
-                <input id="airline" type="text" name="airline" placeholder="Airline">
-              </div>
-              <div class="autocomplete">
-                <input id="airlineSize" type="text" name="airlineSize" placeholder="Annual Passengers">
-              </div>
-            </div>
-  
-            <div class="filter-price">
-              <b>Average Price</b>
-              <div class="autocomplete">
-                <input id="minPrice" type="text" name="minPrice" placeholder="Min">
-              </div>
-              <div class="autocomplete">
-                <input id="maxPrice" type="text" name="maxPrice" placeholder="Max">
-              </div>
-            </div>
-  
-            <div class="filter-delay">
-              <b>Average Delay</b>
-              <div class="autocomplete">
-                <input id="minDelay" type="text" name="minDelay" placeholder="Min">
-              </div>
-              <div class="autocomplete">
-                <input id="maxDelay" type="text" name="maxDelay" placeholder="Max">
-              </div>
-              <select name="delayType" id="delayType">
-                <option value="avg_arr_delay">Total Delay</option>
-                <option value="avg_carrier_delay">Carrier Delay</option>
-                <option value="avg_weather_delay">Weather Delay</option>
-                <option value="avg_nas_delay">NAS Delay</option>
-                <option value="avg_security_delay">Security Delay</option>
-                <option value="avg_late_aircraft_delay">Late Aircraft Delay</option>
-              </select>
-            </div>
+                  <div class="row flight-inputs">
+                    <div class="col-lg-2">
+                      <input class="delay-input" id="nas-delay-id" type="text" placeholder="NAS" name="nas-delay" required>
+                    </div>
+                    <div class="col-lg-2">
+                      <input class="delay-input" id="security-delay-id" type="text" placeholder="Security" name="security-delay" required>
+                    </div>
+                    <div class="col-lg-2">
+                      <input class="delay-input" id="late-aircraft-delay-id" type="text" placeholder="Late Aircraft" name="late-aircraft-delay" required>
+                    </div>
+                    <div class="col-lg-6"></div>
+                  </div>
             
-
-            <input id="submit-filter" type="submit">
-
+                  <button class="btn btn-primary" id="add-flight-button" type="submit" name="action" value="add-flight">Add Flight</button>
+                </div>
+              </form>
+            </div>
           </div>
-        </form>
 
-        <b>Toggle Route Colors</b>
-        <form id="toggle-form">
-          <div>
-              <input type="radio" id="toggle-delay" name="toggle" value="toggle-delay" checked>
-              <label for="option1">Delay</label>
+          <div class="col-lg-4">
+            <button class="btn btn-secondary" id="delete-flight-modal" onclick="document.getElementById('id03').style.display='block'">Delete Flight</button>
+            <!-- The Modal -->
+            <div id="id03" class="modal">
+              <span onclick="document.getElementById('id03').style.display='none'" class="close" title="Close Modal">&times;</span>
+              <!-- Modal Content -->
+              <!-- <form id="login-form" class="modal-content animate" action="/login" method="POST"> -->
+              <form id="delete-flight-form" class="modal-content animate">
+                <div class="container">
+                  <b>Flight Identifiers</b>
+                  <div class="flight-inputs">
+                    <input id="flight-date-id2" type="datetime-local" name="flight-date" required>
+                    <input id="flight-number-id2" type="text" placeholder="Flight Number" name="flight-number" required>
+                    <input id="airline-code-id2" type="text" placeholder="Airline Code" name="airline-code" required>
+                  </div>
+            
+                  <button class="btn btn-primary" id="delete-flight-button" type="submit" name="action" value="delete-flight">Delete Flight</button>
+                </div>
+              </form>
+            </div>
           </div>
-          <div>
-              <input type="radio" id="toggle-price" name="toggle" value="toggle-price">
-              <label for="option2">Price</label>
-          </div>
-        </form>
+        </div>
         
-
       </div>
     </div>
+
+    <!-- <div class="row footer">
+      
+    </div> -->
   </div>
 
 
@@ -1087,7 +1189,7 @@ document.addEventListener('DOMContentLoaded', function() {
     background-color: #fefefe;
     margin: 5px auto; /* 15% from the top and centered */
     border: 1px solid #888;
-    width: 80%; /* Could be more or less, depending on screen size */
+    width: 50%; /* Could be more or less, depending on screen size */
   }
 
   /* The Close Button */
@@ -1130,7 +1232,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   /* --------Webpage CSS-------- */
-  .container {
+  /* .container {
     display: flex;
     flex-direction: column;
     height: 50vh;
@@ -1144,8 +1246,6 @@ document.addEventListener('DOMContentLoaded', function() {
     height: 70px;
     width: 100%;
     display: flex;
-    /* z-index: 1000; */
-
     background-color: #88BBD6;
 
     justify-content: space-between;
@@ -1176,18 +1276,6 @@ document.addEventListener('DOMContentLoaded', function() {
     width: 100%;
     height: 150px;
     background-color: #b1dce4;
-    /* padding: 20px; */
-  }
-
-  #map-canvas {
-    height: 50vh;
-    width: 50vw;
-  }
-
-  .map {
-    display: flex;
-    justify-content: center;
-    align-items: center;
   }
 
   .filter-container {
@@ -1202,37 +1290,141 @@ document.addEventListener('DOMContentLoaded', function() {
     flex-wrap: nowrap;
     gap: 20px;
 
+  } */
+
+  #map-canvas {
+    height: 60vh;
+    width: 65vw;
+  }
+
+  .map {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 30px;
   }
 
   /* Favorite Routes table styling */
-  #favorites-table {
-      border-collapse: collapse; /* Collapse the border lines */
-      width: 100%; /* Set the width of the table */
-  }
+  /* #favorites-table {
+      border-collapse: collapse; 
+      width: 100%;
+  } */
 
   /* Define the border for the table and cells */
-  #favorites-table,
+  /* #favorites-table,
   #favorites-table th,
   #favorites-table td {
-      border: 1px solid black; /* Set the border style, width, and color */
-  }
+      border: 1px solid black;
+  } */
 
   /* Optionally, you can add padding to the table cells for better spacing */
-  #favorites-table th,
+  /* #favorites-table th,
   #favorites-table td {
-      padding: 8px; /* Add padding for spacing */
-      text-align: left; /* Align text to the left */
-  }
+      padding: 8px;
+      text-align: left; 
+  } */
 
   /* --------Flight Form-------- */
-  .flight-inputs {
+  /* .flight-inputs {
     display: flex;
     flex-direction: row;
-  }
+  } */
 
   .route-arrow {
-    margin-left: 6px;
-    margin-right: 6px;
+    margin-left: 40px;
+    align-items: center;
+  }
+
+  html {
+    font-size: 13px;
+  }
+/* 
+  .min-max {
+    width: 110px;
+  } */
+
+  #submit-filter {
+    width: 120px; 
+    margin-left: 10px;
+    margin-top: 10px;
+  }
+
+  .header {
+    background-color: #182628;
+    align-items:center;
+    height: 60px;
+  }
+
+  .contentRight {
+    /* background-color: rgb(193, 221, 234); */
+    background-color: #ececec;
+    padding: 30px;
+  }
+
+  .content {
+    height: calc(100vh - 60px);
+  }
+
+  .alter-fav-routes {
+    padding-top: 20px;
+  }
+
+  .alter-flights {
+    padding-top: 20px;
+  }
+
+  .fav-route-buttons {
+    padding-bottom: 5px;
+  }
+
+  .container {
+    /* height: 50vh; */
+    padding-top: 15px;
+    padding-left: 30px;
+    padding-bottom: 15px;
+  }
+
+  /* .footer {
+    position: fixed;
+    bottom: 0;
+    padding-bottom: 30px;
+    padding-left: 45px;
+  } */
+
+  .delay-input {
+    width: 120px;;
+  }
+
+  .flight-inputs {
+    padding-bottom: 10px;
+  }
+
+  .login-inputs {
+    padding-bottom: 10px;
+  }
+
+  .add-route-button {
+    margin-left: 15px;
+    margin-right: 5px;
+  }
+
+  .btn-primary,
+  .btn-primary:hover,
+  .btn-primary:active,
+  .btn-primary:visited,
+  .btn-primary:focus {
+    background-color: #3a7f9f !important;
+    border-color: #3a7f9f !important;
+  }
+
+  .btn-secondary,
+  .btn-secondary:hover,
+  .btn-secondary:active,
+  .btn-secondary:visited,
+  .btn-secondary:focus {
+    background-color: #D8C3A5 !important;
+    border-color: #D8C3A5 !important;
+    color: black;
   }
 
 </style>
