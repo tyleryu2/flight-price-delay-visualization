@@ -4,14 +4,8 @@
   <title>Flight Delay Visualization</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"> -->
   <link rel="stylesheet" href="styles.css">
-  <!-- <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script> -->
-
   
-
   <!-- Added scripts -->
   <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
   <script src="https://unpkg.com/color-legend-element@1.0.3/build/color-legend-element.umd.js"></script>
@@ -239,12 +233,6 @@
           <h5 class="row alter-fav-routes">Alter Favorite Routes</h5>
           <form autocomplete="off" id="add-fav-route-form">
             <div class="row">
-              <!-- <div class="col-lg-4">
-                <input id="fav-route-origin" type="text" name="fav-route-origin" placeholder="Origin Airport" required>
-              </div>
-              <div class="col-lg-4">
-                <input id="fav-route-dest" type="text" name="fav-route-dest" placeholder="Destination Airport" required>
-              </div> -->
 
             </div>
 
@@ -271,7 +259,6 @@
             <div id="id02" class="modal">
               <span onclick="document.getElementById('id02').style.display='none'" class="close" title="Close Modal">&times;</span>
               <!-- Modal Content -->
-              <!-- <form id="login-form" class="modal-content animate" action="/login" method="POST"> -->
               <form id="add-flight-form" class="modal-content animate">
                 <div class="container">
                   <b>Flight Identifiers</b>
@@ -348,7 +335,6 @@
             <div id="id03" class="modal">
               <span onclick="document.getElementById('id03').style.display='none'" class="close" title="Close Modal">&times;</span>
               <!-- Modal Content -->
-              <!-- <form id="login-form" class="modal-content animate" action="/login" method="POST"> -->
               <form id="delete-flight-form" class="modal-content animate">
                 <div class="container">
                   <b>Flight Identifiers</b>
@@ -368,9 +354,6 @@
       </div>
     </div>
 
-    <!-- <div class="row footer">
-      
-    </div> -->
   </div>
 
 
@@ -577,7 +560,6 @@ var polylines = [];
 
 document.addEventListener('DOMContentLoaded', function() {
 
-  // var center = { lat:39.8283, lng:-98.5795 };	
   var center = { lat:38, lng:-98.5795 };	
   
   var mapOptions = {
@@ -1043,7 +1025,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function clickOnRoute(line, origin, dest, price, delay) {
   google.maps.event.addListener(line, 'click', function(event) {
-    // alert('Polyline clicked at location: ' + event.latLng);
     var msg = `
       Origin Airport: ${origin}
       Destination Airport: ${dest}
@@ -1066,11 +1047,7 @@ document.addEventListener('DOMContentLoaded', function() {
       var airline_code = document.getElementById('airline-code-id').value;
 
       var origin_airport = document.getElementById('origin-airport-id').value;
-      // var origin_city = document.getElementById('origin-city-id').value;
-      // var origin_state = document.getElementById('origin-state-id').value;
       var dest_airport = document.getElementById('dest-airport-id').value;
-      // var dest_city = document.getElementById('dest-city-id').value;
-      // var dest_state = document.getElementById('dest-state-id').value;
 
       var price = document.getElementById('price-id').value;
       var dep_delay = document.getElementById('dep-delay-id').value;
@@ -1086,11 +1063,7 @@ document.addEventListener('DOMContentLoaded', function() {
           flight_number: flight_number,
           airline_code: airline_code,
           origin_airport: origin_airport,
-          // origin_city: origin_city,
-          // origin_state: origin-state,
           dest_airport: dest_airport,
-          // dest_city: dest_city,
-          // dest_state: dest_state,
           price: price,
           dep_delay: dep_delay,
           arr_delay: arr_delay,
@@ -1231,67 +1204,6 @@ document.addEventListener('DOMContentLoaded', function() {
     to {transform: scale(1)}
   }
 
-  /* --------Webpage CSS-------- */
-  /* .container {
-    display: flex;
-    flex-direction: column;
-    height: 50vh;
-  }
-
-
-  .header {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 70px;
-    width: 100%;
-    display: flex;
-    background-color: #88BBD6;
-
-    justify-content: space-between;
-    align-items:center;
-  }
-
-  .content {
-    margin-top: 70px;
-    margin-bottom: 150px;
-    display: flex;
-    height: calc(100vh - 220px);
-  }
-
-  .contentLeft {
-    flex: 0.75;
-    padding: 20px;
-  }
-
-  .contentRight {
-    flex: 0.25;
-    padding: 20px;
-  }
-
-  .footer {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 150px;
-    background-color: #b1dce4;
-  }
-
-  .filter-container {
-    flex-grow: 1;
-    display: flex;
-    padding: 20px;
-  }
-
-
-  .filters {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 20px;
-
-  } */
-
   #map-canvas {
     height: 60vh;
     width: 65vw;
@@ -1308,32 +1220,6 @@ document.addEventListener('DOMContentLoaded', function() {
     padding-left: 23px;
   }
 
-  /* Favorite Routes table styling */
-  /* #favorites-table {
-      border-collapse: collapse; 
-      width: 100%;
-  } */
-
-  /* Define the border for the table and cells */
-  /* #favorites-table,
-  #favorites-table th,
-  #favorites-table td {
-      border: 1px solid black;
-  } */
-
-  /* Optionally, you can add padding to the table cells for better spacing */
-  /* #favorites-table th,
-  #favorites-table td {
-      padding: 8px;
-      text-align: left; 
-  } */
-
-  /* --------Flight Form-------- */
-  /* .flight-inputs {
-    display: flex;
-    flex-direction: row;
-  } */
-
   .route-arrow {
     margin-left: 40px;
     align-items: center;
@@ -1342,10 +1228,6 @@ document.addEventListener('DOMContentLoaded', function() {
   html {
     font-size: 13px;
   }
-/* 
-  .min-max {
-    width: 110px;
-  } */
 
   #submit-filter {
     width: 120px; 
@@ -1360,7 +1242,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   .contentRight {
-    /* background-color: rgb(193, 221, 234); */
     background-color: #ececec;
     padding: 30px;
   }
@@ -1387,13 +1268,6 @@ document.addEventListener('DOMContentLoaded', function() {
     padding-left: 30px;
     padding-bottom: 15px;
   }
-
-  /* .footer {
-    position: fixed;
-    bottom: 0;
-    padding-bottom: 30px;
-    padding-left: 45px;
-  } */
 
   .delay-input {
     width: 120px;;

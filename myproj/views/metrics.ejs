@@ -34,14 +34,11 @@
         <form autocomplete="off" id="metric-form">
           <select name="metric-type" id="metric-type">
             <option value="airport-traffic-metric">Airport Traffic</option>
-            <!-- <option value="airport-time-metric">Airport Timeliness</option>
-            <option value="arieline-traffic-metric">Airline Traffic</option> -->
             <option value="airline-time-metric">Airline Timeliness</option>
           </select>
           <input class="btn btn-primary" id="submit-metric" type="submit">
         </form>
       </div>
-        <!-- <button id="airport-metric">Airport Metric</button> -->
       <div id="map-container" style="display: none">
         <div class="row">
           <h3>Incoming and Outgoing Flights + Average Delay for Each Airport</h3>
@@ -122,14 +119,7 @@
 
       </div>
       <div id="chart-container" style="display: none">
-        <!-- <div class="row chart-content">
-          <div class="col-lg-6">
-            <h3>Top 5 Origin Airports for Each Airline</h3>
-          </div>
-          <div class="col-lg-6">
-            <h3>Early and Late Flights for Each Airline</h3>
-          </div>
-        </div> -->
+
         <div class="row">
           <div class="col-lg-6">
             <h3>Top 5 Origin Airports for Each Airline</h3>
@@ -137,19 +127,7 @@
               <div class="row">
                 <div id="map-canvas2"></div>
                 <div class="info" style="position: absolute; font-family: Arial; font-size: 14px; display: none;"></div>
-                <!-- <div id="color-legend2" style="display: none;">
-                  <div class="row">
-                    <color-legend
-                      titletext="Airport Color by Proportion of Outgoing Flights (%)"
-                      scaletype="continuous"
-                      range='["#ff0000", "#00ff00"]'
-                      domain="[0, 100]"
-                      tickFormat=".0f"
-                      tickValues="[0, 1, 2, 3, 4]"
-                    >
-                    </color-legend>
-                  </div>
-                </div> -->
+
                 <b>Select Airline</b>
                 <div class="row">
                   <select class="airlineSelect" name="airlineSelect" id="airlineSelect" style="width: 200px;">
@@ -397,9 +375,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
       if (metricType == 'airport-traffic-metric') {
         airportTrafficMetric();
-      // } else if (metricType == 'airport-time-metric') {
-
-      // } else if (metricType == 'airline-traffic-metric') {
 
       } else if (metricType == 'airline-time-metric') {
         airlineTimeMetric();
@@ -422,7 +397,6 @@ async function airportTrafficMetric() {
   const data = await response.json();
   console.log(data);
   if (data.success) {
-    // var center = { lat:39.8283, lng:-98.5795 };	
     var center = { lat:38, lng:-98.5795 };	
 
     var mapOptions = {
@@ -530,7 +504,6 @@ function calculateColor(color1, color2, proportion) {
 
 function clickOnCircle(circle, airport, incoming, outgoing, proportion, origin_delay, dest_delay) {
   google.maps.event.addListener(circle, 'click', function(event) {
-    // alert('Polyline clicked at location: ' + event.latLng);
     var msg = `
       Airport: ${airport}
       Number of flights:
@@ -603,17 +576,14 @@ async function airlineTimeMetric() {
     map_container2.style.display = "block";
 
   var airlineTimes = airlineData.data[0];
-  // const labels = Array(Object.keys(airlineTimes).length);
-  // const earlyData = Array(Object.keys(airlineTimes).length);
-  // const lateData = Array(Object.keys(airlineTimes).length);
+
   var labels = [];
   var earlyData = [];
   var lateData = [];
   var propData = [];
 
   airlineTimes.forEach(function(airline) {
-      // labels.push(airline.airline.concat(' (', airline.airline_code, ')'));
-      // labels.push(airline.airline_code);
+
       labels.push(airline.airline_code.concat(': ', airline.airline));
       earlyData.push(airline.num_early);
       lateData.push(airline.num_late);
@@ -713,9 +683,6 @@ async function airlineTimeMetric() {
       mapTypeId: google.maps.MapTypeId.RoadMap
   };
 
-  // var color_legend = document.getElementById('color-legend2');
-  // color_legend.style.display = "block";
-
   var map_element = document.getElementById('map-canvas2');
   map_element.style.display = "block";
 
@@ -785,7 +752,6 @@ async function airlineTimeMetric() {
 
 function clickOnCircle2(circle, airline, airline_name, origin_airport, num_flights, rank) {
   google.maps.event.addListener(circle, 'click', function(event) {
-    // alert('Polyline clicked at location: ' + event.latLng);
     var msg = `
       Airline name: ${airline_name}
       Airline code: ${airline}
@@ -844,10 +810,6 @@ html {
   margin: 10px;
 }
 
-/* .visualization {
-  justify-content: center;
-  align-items: center;
-} */
 
 #map-container {
   width: 100%;
@@ -855,7 +817,6 @@ html {
   display: flex;
   justify-content: center;
   align-items: center;
-  /* padding-left: 20px; */
 }
 
 #submit-filter {
@@ -869,9 +830,7 @@ html {
   overflow: auto;
   display:inline-block;
   border-style: solid;
-  /* background-color: #ececec;
-  padding: 30px; */
-  /* margin-left: 5px; */
+
 }
 
 table {
