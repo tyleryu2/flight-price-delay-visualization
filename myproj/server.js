@@ -710,8 +710,50 @@ app.post('/airline_timeliness', async (req, res) => {
   // post index: ~2-2.5 sec
 
 
-  var query = [
+  // var query1 = [
+  //   `START TRANSACTION;`,
+  //   `DROP VIEW IF EXISTS Early_flights;`,
+  //   `DROP VIEW IF EXISTS Late_flights;`,
+  //   `CREATE VIEW Early_flights AS
+  //       SELECT airline_code, COUNT(airline_code) AS num_early
+  //       FROM Flights
+  //       WHERE arr_delay <= 0
+  //       GROUP BY airline_code;`,
+  //   `CREATE VIEW Late_flights AS
+  //       SELECT airline_code, COUNT(airline_code) AS num_late
+  //       FROM Flights
+  //       WHERE arr_delay > 0
+  //       GROUP BY airline_code;`,
+  //   // `CREATE VIEW Airline_data AS
+  //   //     SELECT airline_code, AVG(arr_delay) AS avg_arr_delay, COUNT(airline_code) AS num_flights
+  //   //     FROM Flights
+  //   //     GROUP BY airline_code;`,
+  //   // `CREATE VIEW Early_late AS
+  //   //     SELECT e.airline_code, num_early, num_late, (num_early / (num_early + num_late)) AS prop_early
+  //   //     FROM Early_flights e JOIN Late_flights l ON e.airline_code = l.airline_code
+  //   //     ORDER BY num_early DESC;`,
+  //   // `SELECT e.airline_code, num_early, num_late, (num_early / (num_early + num_late)) AS prop_early, avg_arr_delay, num_flights
+  //   //  FROM Early_late e JOIN Airline_data a ON e.airline_code = a.airline_code
+  //   //  ORDER BY num_early DESC;`,
+
+  //   // `SELECT e.airline_code, num_early, num_late, (num_early / (num_early + num_late)) AS prop_early, avg_arr_delay, num_flights
+  //   //  FROM Early_flights e JOIN Late_flights l ON e.airline_code = l.airline_code JOIN Airline_data a ON l.airline_code = a.airline_code
+  //   //  ORDER BY num_early DESC;`,
+  //   `SELECT e.airline_code, num_early, num_late, (num_early / (num_early + num_late)) AS prop_early
+  //    FROM Early_flights e JOIN Late_flights l ON e.airline_code = l.airline_code
+  //    ORDER BY num_early DESC;`,
+  //   `DROP VIEW IF EXISTS Early_flights;`,
+  //   `DROP VIEW IF EXISTS Late_flights;`,
+  //   // `DROP VIEW Airline_data;`,
+  //   // `DROP VIEW Early_late;`,
+  //   `COMMIT;`
+  // ]
+
+  var query1 = [
     `START TRANSACTION;`,
+    `DROP VIEW IF EXISTS Early_flights;`,
+    `DROP VIEW IF EXISTS Late_flights;`,
+    `DROP VIEW IF EXISTS Airport_ranks;`,
     `CREATE VIEW Early_flights AS
         SELECT airline_code, COUNT(airline_code) AS num_early
         FROM Flights
@@ -722,23 +764,63 @@ app.post('/airline_timeliness', async (req, res) => {
         FROM Flights
         WHERE arr_delay > 0
         GROUP BY airline_code;`,
-    `SELECT e.airline_code, num_early, num_late, (num_early / (num_early + num_late)) AS prop_early
-     FROM Early_flights e JOIN Late_flights l ON e.airline_code = l.airline_code
-     ORDER BY num_early DESC;`,
-    `DROP VIEW Early_flights;`,
-    `DROP VIEW Late_flights;`,
+    `SELECT a.airline, e.airline_code, num_early, num_late, (num_early / (num_early + num_late)) AS prop_early
+      FROM Early_flights e JOIN Late_flights l ON e.airline_code = l.airline_code JOIN Airlines a on a.airline_code = l.airline_code
+      ORDER BY num_early DESC;`,
+    `CREATE VIEW Airport_ranks AS
+      SELECT f.airline_code, f.origin_airport, COUNT(*) AS num_flights,
+          RANK() OVER (PARTITION BY f.airline_code ORDER BY COUNT(*) DESC) AS airport_rank
+      FROM Flights f
+      GROUP BY f.airline_code, f.origin_airport;`,
+    `SELECT a.airline, f.airline_code, f.origin_airport, f.airport_rank, f.num_flights
+      FROM (
+        SELECT f.airline_code, f.origin_airport, COUNT(*) AS num_flights,
+          RANK() OVER (PARTITION BY f.airline_code ORDER BY COUNT(*) DESC) AS airport_rank
+        FROM Flights f
+        GROUP BY f.airline_code, f.origin_airport
+      ) f JOIN Airlines a ON f.airline_code = a.airline_code
+      WHERE f.airport_rank <= 5
+      ORDER BY airline_code, f.num_flights DESC;`,
     `COMMIT;`
   ]
 
   console.log('Starting query...');
-  console.time('queryExecutionTime');
-  var airline_stats = Array(7);
-  for (var i = 0; i < query.length; i++) {
-    airline_stats[i] = await dbQuery(query[i]);
+  var airline_stats = [];
+  console.time('totalQueryExecutionTime');
+  for (var i = 0; i < query1.length; i++) {
+    console.time('query1');
+    if (i == 6 | i == 8) { 
+      airline_stats.push(await dbQuery(query1[i])) 
+    } else {
+      await dbQuery(query1[i]);
+    };
+    console.timeEnd('query1');
   }
-  console.timeEnd('queryExecutionTime');
 
-  
+  // var query2 = [
+  //   `START TRANSACTION;`,
+  //   // `SELECT airline_code, AVG(arr_delay) AS avg_delay, COUNT(airline_code) AS num_flights
+  //   //  FROM Flights
+  //   //  GROUP BY airline_code;`,
+  //   `SELECT airline_code, SUM(arr_delay) AS sum_arr_delay
+  //    FROM Flights
+  //    GROUP BY airline_code;`,
+  //   `COMMIT;`,
+  // ];
+
+  // for (var i = 0; i < query2.length; i++) {
+  //   console.time('query2');
+  //   if (i == 1) { 
+  //     airline_stats.push(await dbQuery(query2[i])) 
+  //   } else {
+  //     await dbQuery(query2[i]);
+  //   };
+  //   console.timeEnd('query2');
+  // }
+
+  console.timeEnd('totalQueryExecutionTime');
+
+
 
   // index: CREATE INDEX f_origin_airport_idx ON Flights(origin_airport)
       // pre index: 14.1-14.4 SECONDS
@@ -758,8 +840,6 @@ app.post('/airline_timeliness', async (req, res) => {
 
   res.json({ success: true, data: airline_stats });
 });
-
-
 
 
 

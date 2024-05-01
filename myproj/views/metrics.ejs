@@ -42,83 +42,146 @@
         </form>
       </div>
         <!-- <button id="airport-metric">Airport Metric</button> -->
-      <div class="visualization">
-        <div id="map-container" style="display: none">
-          <div class="row">
-            <div class="col-lg-8">
-              <div id="map-canvas"></div>
-              <div id="info" style="position: absolute; font-family: Arial; font-size: 14px; display: none;"></div>
-              <div id="color-legend" style="display: none;">
-                <div class="row">
-                  <color-legend
-                    titletext="Airport Color by Proportion of Outgoing Flights (%)"
-                    scaletype="continuous"
-                    range='["#ff0000", "#00ff00"]'
-                    domain="[0, 100]"
-                    tickFormat=".0f"
-                    tickValues="[0, 25, 50, 75, 100]"
-                  >
-                  </color-legend>
+      <div id="map-container" style="display: none">
+        <div class="row">
+          <h3>Incoming and Outgoing Flights + Average Delay for Each Airport</h3>
+        </div>
+        <div class="row">
+          <div class="col-lg-8">
+            <div id="map-canvas"></div>
+            <div class="info" style="position: absolute; font-family: Arial; font-size: 14px; display: none;"></div>
+            
+            <div class="row">
+              <div class="col-lg-7">
+                <form autocomplete="off" id="filter-form">
+                  <div class="row filters" style="margin-top: 20px;">
+                    <h3>Filters for Average Total Delay</h3>
+                    <div class="row">
+                      <b class="col-lg-3">Airport as Origin</b>
+                      <b class="col-lg-4">Airport as Destination</b>
+                    </div>
+                    <div class="row filter-delay">
+                      <!-- <b>Airport as Origin</b> -->
+                      <div class="col-lg-3">
+                        <div class="autocomplete">
+                          <input class="min-max" id="originMinDelay" type="text" name="originMinDelay" placeholder="Min">
+                        </div>
+                        <div class="autocomplete">
+                          <input class="min-max" id="originMaxDelay" type="text" name="originMaxDelay" placeholder="Max">
+                        </div>
+                      </div>
+                      <!-- <b>Airport as Destination</b> -->
+                      <div class="col-lg-4">
+                        <div class="autocomplete">
+                          <input class="min-max" id="destMinDelay" type="text" name="destMinDelay" placeholder="Min">
+                        </div>
+                        <div class="autocomplete">
+                          <input class="min-max" id="destMaxDelay" type="text" name="destMaxDelay" placeholder="Max">
+                        </div>
+                      </div>
+                    </div>
+                    <input class="row btn btn-primary" id="submit-filter" type="submit" value="Submit Filters">
+                  </div>
+                </form>
+              </div>
+              <div class="col-lg-5">
+                <div id="color-legend" style="display: none;">
+                  <div class="row">
+                    <color-legend
+                      titletext="Airport Color by Proportion of Outgoing Flights (%)"
+                      scaletype="continuous"
+                      range='["#ff0000", "#00ff00"]'
+                      domain="[0, 100]"
+                      tickFormat=".0f"
+                      tickValues="[0, 25, 50, 75, 100]"
+                    >
+                    </color-legend>
+                  </div>
                 </div>
               </div>
-              <form autocomplete="off" id="filter-form">
-                <div class="row filters">
-                  <h3>Filters for Average Total Delay</h3>
-                  <div class="row">
-                    <b class="col-lg-2">Airport as Origin</b>
-                    <b class="col-lg-2">Airport as Destination</b>
-                  </div>
-                  <div class="row filter-delay">
-                    <!-- <b>Airport as Origin</b> -->
-                    <div class="col-lg-2">
-                      <div class="autocomplete">
-                        <input id="originMinDelay" type="text" name="originMinDelay" placeholder="Min">
-                      </div>
-                      <div class="autocomplete">
-                        <input id="originMaxDelay" type="text" name="originMaxDelay" placeholder="Max">
-                      </div>
-                    </div>
-                    <!-- <b>Airport as Destination</b> -->
-                    <div class="col-lg-2">
-                      <div class="autocomplete">
-                        <input id="destMinDelay" type="text" name="destMinDelay" placeholder="Min">
-                      </div>
-                      <div class="autocomplete">
-                        <input id="destMaxDelay" type="text" name="destMaxDelay" placeholder="Max">
-                      </div>
-                    </div>
-                  </div>
-            
-                  <input class="row btn btn-primary" id="submit-filter" type="submit" value="Submit Filters">
-                </div>
-              </form>
             </div>
-            <div class="col-lg-4 table-container">
-              <table class="table table-hover table-bordered" id="airports-table">
-                <thead>
-                  <tr>
-                    <th>Airport</th>
-                    <th>Number Incoming</th>
-                    <th>Number Outgoing</th>
-                    <th>Average Delay as Origin</th>
-                    <th>Average Delay as Destination</th>
-                  </tr>
-                </thead>
-                <tbody>
-            
-                </tbody>
-              </table>
+
+          </div>
+          <div class="col-lg-4 table-container">
+            <table class="table table-hover table-bordered" id="airports-table">
+              <thead>
+                <tr>
+                  <th>Airport</th>
+                  <th>Number Incoming</th>
+                  <th>Number Outgoing</th>
+                  <th>Average Delay as Origin (min)</th>
+                  <th>Average Delay as Destination (min)</th>
+                </tr>
+              </thead>
+              <tbody>
+          
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+      <div id="chart-container" style="display: none">
+        <!-- <div class="row chart-content">
+          <div class="col-lg-6">
+            <h3>Top 5 Origin Airports for Each Airline</h3>
+          </div>
+          <div class="col-lg-6">
+            <h3>Early and Late Flights for Each Airline</h3>
+          </div>
+        </div> -->
+        <div class="row">
+          <div class="col-lg-6">
+            <h3>Top 5 Origin Airports for Each Airline</h3>
+            <div id="map-container2" style="display: none">
+              <div class="row">
+                <div id="map-canvas2"></div>
+                <div class="info" style="position: absolute; font-family: Arial; font-size: 14px; display: none;"></div>
+                <!-- <div id="color-legend2" style="display: none;">
+                  <div class="row">
+                    <color-legend
+                      titletext="Airport Color by Proportion of Outgoing Flights (%)"
+                      scaletype="continuous"
+                      range='["#ff0000", "#00ff00"]'
+                      domain="[0, 100]"
+                      tickFormat=".0f"
+                      tickValues="[0, 1, 2, 3, 4]"
+                    >
+                    </color-legend>
+                  </div>
+                </div> -->
+                <b>Select Airline</b>
+                <div class="row">
+                  <select class="airlineSelect" name="airlineSelect" id="airlineSelect" style="width: 200px;">
+                    <option value="WN">WN: Southwest Airlines</option>
+                    <option value="AA">AA: American Airlines</option>
+                    <option value="DL">DL: Delta Airlines</option>
+                    <option value="UA">UA: United Airlines</option>
+                    <option value="OO">OO: SkyWest Airlines</option>
+                    <option value="YX">YX: Republic Airways</option>
+                    <option value="B6">B6: JetBlue Airways</option>
+                    <option value="NK">NK: Spirit Airlines</option>
+                    <option value="MQ">MQ: Envoy Air</option>
+                    <option value="AS">AS: Alaska Airlines</option>
+                    <option value="9E">9E: Endeavor</option>
+                    <option value="YV">YV: Mesa Airlines</option>
+                    <option value="F9">F9: Frontier Airlines</option>
+                    <option value="OH">OH: PSA Airlines</option>
+                    <option value="G4">G4: Allegiant Air</option>
+                    <option value="QX">QX: Horizon Air</option>
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
-
-        </div>
-        <div class="row" id="chart-container" style="display: none">
-          <div class="row">
-            <div class="col-lg-6">
-              <canvas id="chart1"></canvas>
-            </div>
-            <div class="col-lg-6">
-              <canvas id="chart2"></canvas>
+          <div class="col-lg-6 charts">
+            <div class="row">
+              <div class="col-lg-1"></div>
+              <div class="col-lg-11">
+                <h3>Early and Late Flights for Each Airline</h3>
+                <canvas id="chart1"></canvas>
+                <canvas id="chart2"></canvas>
+              </div>
             </div>
           </div>
         </div>
@@ -395,7 +458,7 @@ async function airportTrafficMetric() {
       var color = calculateColor(red, green, proportion);
 
       // console.log(airportData);
-      airport_coord = { lat: airport_coords[airport][0], lng: airport_coords[airport][1] }
+      var airport_coord = { lat: airport_coords[airport][0], lng: airport_coords[airport][1] }
 
       var circle = new google.maps.Circle({
         strokeColor: color,
@@ -429,13 +492,16 @@ async function airportTrafficMetric() {
       const tableBody = document.querySelector('#airports-table tbody');
       tableBody.innerHTML = '';
 
-      console.log('Data:', data.data);
+      // console.log('Data:', data.data);
       data.data[0].forEach(row => {
         const tableRow = document.createElement('tr');
         for (const key in row) {
           const tableCell = document.createElement('td');
           var value = row[key];
-          if (typeof value === 'number') {
+          // console.log(key);
+          if (key == 'num_outgoing' | key == 'num_incoming') {
+            value = value.toFixed(0);
+          } else if (key == 'origin_avg_delay' | key == 'dest_avg_delay') {
             value = value.toFixed(2);
           }
 
@@ -467,7 +533,7 @@ function clickOnCircle(circle, airport, incoming, outgoing, proportion, origin_d
     // alert('Polyline clicked at location: ' + event.latLng);
     var msg = `
       Airport: ${airport}
-      Number of incoming/outgoing flights:
+      Number of flights:
           Incoming: ${incoming}
           Outgoing: ${outgoing}
           Proportion of outgoing flights: ${(proportion * 100).toFixed(2)}%
@@ -513,6 +579,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
+var allCircles2 = [];
+
 async function airlineTimeMetric() {
   const response = await fetch('/airline_timeliness', {
     method: 'POST',
@@ -531,7 +599,10 @@ async function airlineTimeMetric() {
   var chart_container = document.getElementById('chart-container');
   chart_container.style.display = "block";
 
-  var airlineTimes = airlineData.data[3];
+  var map_container2 = document.getElementById('map-container2');
+    map_container2.style.display = "block";
+
+  var airlineTimes = airlineData.data[0];
   // const labels = Array(Object.keys(airlineTimes).length);
   // const earlyData = Array(Object.keys(airlineTimes).length);
   // const lateData = Array(Object.keys(airlineTimes).length);
@@ -541,7 +612,9 @@ async function airlineTimeMetric() {
   var propData = [];
 
   airlineTimes.forEach(function(airline) {
-      labels.push(airline.airline_code);
+      // labels.push(airline.airline.concat(' (', airline.airline_code, ')'));
+      // labels.push(airline.airline_code);
+      labels.push(airline.airline_code.concat(': ', airline.airline));
       earlyData.push(airline.num_early);
       lateData.push(airline.num_late);
       propData.push(airline.prop_early * 100);
@@ -553,23 +626,15 @@ async function airlineTimeMetric() {
       {
         label: 'Early Flights',
         data: earlyData,
-        backgroundColor: [
-          'rgba(0, 255, 0, 0.2)'
-        ],
-        borderColor: [
-          'rgb(0, 255, 0)'
-        ],
+        backgroundColor: [ 'rgba(0, 255, 0, 0.2)' ],
+        borderColor: [ 'rgb(0, 255, 0)' ],
         borderWidth: 1
       },
       {
         label: 'Late Flights',
         data: lateData,
-        backgroundColor: [
-          'rgba(255, 0, 0, 0.2)'
-        ],
-        borderColor: [
-          'rgb(255, 0, 0)'
-        ],
+        backgroundColor: [ 'rgba(255, 0, 0, 0.2)' ],
+        borderColor: [ 'rgb(255, 0, 0)' ],
         borderWidth: 1
       },
     ]
@@ -581,12 +646,18 @@ async function airlineTimeMetric() {
     options: {
       scales: {
         x: {
-          title: { display: true, text: 'Airline Code' }
+          title: { display: true, text: 'Airline Code' },
+          ticks: {
+            callback: function(index) {
+              const label = labels[index].substring(0, 2);
+              return label;
+            }
+          }
         },
         y: {
           beginAtZero: true,
           title: { display: true, text: 'Number of Flights' }
-        }
+        },
       }
     },
   };
@@ -597,12 +668,8 @@ async function airlineTimeMetric() {
       {
         label: 'Early Flight Proportion',
         data: propData,
-        backgroundColor: [
-          'rgba(0, 0, 255, 0.2)'
-        ],
-        borderColor: [
-          'rgb(0, 0, 255)'
-        ],
+        backgroundColor: [ 'rgba(0, 0, 255, 0.2)' ],
+        borderColor: [ 'rgb(0, 0, 255)' ],
         borderWidth: 1
       },
     ]
@@ -614,7 +681,13 @@ async function airlineTimeMetric() {
     options: {
       scales: {
         x: {
-          title: { display: true, text: 'Airline Code' }
+          title: { display: true, text: 'Airline Code' },
+          ticks: {
+            callback: function(index) {
+              const label = labels[index].substring(0, 2);
+              return label;
+            }
+          }
         },
         y: {
           beginAtZero: true,
@@ -630,7 +703,119 @@ async function airlineTimeMetric() {
   const ctx2 = document.getElementById('chart2').getContext('2d');
   new Chart(ctx2, config2);
 
+
+
+  var center = { lat:38, lng:-98.5795 };	
+
+  var mapOptions = {
+      zoom: 4,
+      center: center,
+      mapTypeId: google.maps.MapTypeId.RoadMap
+  };
+
+  // var color_legend = document.getElementById('color-legend2');
+  // color_legend.style.display = "block";
+
+  var map_element = document.getElementById('map-canvas2');
+  map_element.style.display = "block";
+
+  var map = new google.maps.Map(map_element, mapOptions);
+
+
+  var airportData = airlineData.data[1];
+
+  var topAirports = {};
+
+  airportData.forEach(function(airline) {
+    var airline_code = airline.airline_code;
+    var airline_name = airline.airline;
+    var origin_airport = airline.origin_airport;
+    var num_flights = airline.num_flights;
+    var rank = airline.airport_rank;
+
+    if (!topAirports[airline_code]) {
+      topAirports[airline_code] = [];
+    }
+
+    topAirports[airline_code].push({ airline_name, origin_airport, num_flights, rank } );
+
+  });
+
+  console.log('topAirports', topAirports);
+
+  for (const airline in topAirports) {
+    // Access the list of airport and num_flights objects for the airline
+    const airportsList = topAirports[airline];
+
+    airportsList.forEach(({ airline_name, origin_airport, num_flights, rank }) => {
+      var airport_coord = { lat: airport_coords[origin_airport][0], lng: airport_coords[origin_airport][1] }
+      var circle = new google.maps.Circle({
+        strokeColor: '#FFFF00',
+        strokeOpacity: 0.6,
+        strokeWeight: 2,
+        fillColor: '#FFFF00',
+        fillOpacity: 0.35,
+        map,
+        center: airport_coord,
+        radius: num_flights * 6,
+        zIndex: 100000 - num_flights
+      })
+
+      if (airline != 'WN') {
+        circle.setVisible(false);
+      }
+
+      allCircles2.push(
+        {
+          circle: circle,
+          airline_code: airline,
+          airline_name: airline_name,
+          origin_airport: origin_airport,
+          num_flights: num_flights,
+          rank: rank
+        }
+      );
+
+      clickOnCircle2(circle, airline, airline_name, origin_airport, num_flights, rank);
+    });
+
+   
+  }
 }
+
+function clickOnCircle2(circle, airline, airline_name, origin_airport, num_flights, rank) {
+  google.maps.event.addListener(circle, 'click', function(event) {
+    // alert('Polyline clicked at location: ' + event.latLng);
+    var msg = `
+      Airline name: ${airline_name}
+      Airline code: ${airline}
+          Airport: ${origin_airport}
+          Airport rank: ${rank}
+          Number of outgoing flights: ${num_flights}
+    `;
+    alert(msg);
+  });
+}
+
+var selectElement = document.getElementById('airlineSelect');
+
+selectElement.addEventListener('change', function(event) {
+  var airline = event.target.value;
+  console.log(airline);
+
+  allCircles2.forEach(function(item) {
+    item.circle.setVisible(false);
+  });
+
+  allCircles2.forEach(function(item) {
+    if (item.airline_code == airline) {
+      
+      item.circle.setVisible(true);
+    }
+    
+  });
+})
+
 </script>
 
 <style>
@@ -652,6 +837,7 @@ html {
 .content {
   height: calc(100vh - 60px);
   width: 100%;
+  overflow: hidden;
 }
 
 .metric-form {
@@ -682,6 +868,10 @@ html {
   max-height: 60vh;
   overflow: auto;
   display:inline-block;
+  border-style: solid;
+  /* background-color: #ececec;
+  padding: 30px; */
+  /* margin-left: 5px; */
 }
 
 table {
@@ -693,6 +883,25 @@ th {
   background: white;
   position: sticky;
   top: 0;
+}
+
+#map-canvas2 {
+  height: 50vh;
+  width: 50vw;
+}
+
+
+#map-container2 {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: 10px;
+}
+
+.min-max {
+  width: 135px;
 }
 
 
